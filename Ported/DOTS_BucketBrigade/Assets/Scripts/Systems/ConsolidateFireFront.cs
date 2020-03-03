@@ -17,7 +17,7 @@ public class ConsolidateFireFront : JobComponentSystem
     {
         EntityCommandBuffer.Concurrent ecb = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent();
         var grid = GetSingleton<Grid>();
-        var handle = Entities.ForEach((Entity entity, int entityInQueryIndex, FireTag tag, PositionInGrid posInGrid) =>
+        var handle = Entities.ForEach((Entity entity, int entityInQueryIndex, FireFrontTag tag, PositionInGrid posInGrid) =>
             {
                 var aroundPos = new int2[]
                 {
@@ -40,7 +40,7 @@ public class ConsolidateFireFront : JobComponentSystem
                 }
                 
                 if (!isInFront)
-                    ecb.RemoveComponent<FireTag>(entityInQueryIndex, entity);
+                    ecb.RemoveComponent<FireFrontTag>(entityInQueryIndex, entity);
                 
             })
             .Schedule(inputDeps);
