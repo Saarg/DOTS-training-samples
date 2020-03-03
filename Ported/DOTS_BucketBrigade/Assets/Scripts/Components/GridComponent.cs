@@ -4,5 +4,16 @@ using Unity.Mathematics;
 
 public struct Grid : IComponentData
 {
-    public UnsafeMultiHashMap<int2, Entity> Value;
+    public struct Cell
+    {
+        public enum ContentFlags
+        {
+            Nothing,
+            Fire,
+            Water,
+        }
+        public Entity Entity;
+        public ContentFlags Flags;
+    }
+    public UnsafeHashMap<int2, Cell> Value;
 }

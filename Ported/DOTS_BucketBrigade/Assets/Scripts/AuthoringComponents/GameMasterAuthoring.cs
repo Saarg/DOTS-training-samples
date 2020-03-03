@@ -29,7 +29,7 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 
         dstManager.AddComponentData(entity, new Grid
         {
-            Value = new UnsafeMultiHashMap<int2, Entity>(NbRows * NbCols, Allocator.Persistent)
+            Value = new UnsafeHashMap<int2, Grid.Cell>(NbRows * NbCols, Allocator.Persistent)
         });
 
         dstManager.RemoveComponent<Translation>(entity);
