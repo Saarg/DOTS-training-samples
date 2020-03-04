@@ -87,6 +87,7 @@ public class SpreadFire : JobComponentSystem
                     {
                         state.Value = 1.0f;
                         ecb.AddComponent<MaxOutFireTag>(entityInQueryIndex, entity);
+                        t.Value.y = 1.0f - InvwkRndf(ref rseed) * 0.1f;
                     }
                     else
                     {
@@ -115,8 +116,8 @@ public class SpreadFire : JobComponentSystem
                         ecb.AddComponent<NewFireTag>(entityInQueryIndex, entity);
 
                         // FIXME: remove
-                        ecb.SetComponent<Translation>(entityInQueryIndex, entity,
-                            new Translation() {Value = new float3(posInGrid.Value.x, 0.5f, posInGrid.Value.y)});
+                        float3 pos = new float3(grid.ToPos2D(posInGrid.Value), 0).xzy;
+                        ecb.SetComponent<Translation>(entityInQueryIndex, entity, new Translation() {Value = pos});
                     }
                 })
             .Schedule(simFireHandle);

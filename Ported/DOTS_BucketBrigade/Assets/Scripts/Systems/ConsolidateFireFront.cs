@@ -98,7 +98,9 @@ public class ConsolidateFireFront : JobComponentSystem
                             ecb.SetComponent<GradientState>(entityInQueryIndex, preFireEntity, new GradientState());
                             
                             // FIXME: remove
-                            ecb.SetComponent<Translation>(entityInQueryIndex, preFireEntity, new Translation(){ Value = (float3)(new int3(currentPos.x, -1, currentPos.y))});
+                            float3 pos = new float3(grid.ToPos2D(currentPos), -1.0f).xzy;
+
+                            ecb.SetComponent<Translation>(entityInQueryIndex, preFireEntity, new Translation(){ Value = pos});
                         }
                     }
                 })
