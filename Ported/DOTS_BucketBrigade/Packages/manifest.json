@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "com.unity.collab-proxy": "1.2.16",
+    "com.unity.dots.editor": "0.3.0-preview",
     "com.unity.entities": "0.7.0-preview.19",
     "com.unity.ide.rider": "1.1.4",
     "com.unity.ide.vscode": "1.1.4",
