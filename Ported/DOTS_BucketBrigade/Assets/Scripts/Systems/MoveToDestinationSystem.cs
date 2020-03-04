@@ -1,12 +1,15 @@
-﻿using Unity.Collections;
+﻿using Unity.Burst;
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 
+[GenerateAuthoringComponent]
 public class MoveToDestinationSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem m_CommandBufferSystem;
     
+    [BurstCompile]
     struct MoveToDestinationJob : IJobForEachWithEntity<Position2D, Destination2D, MovementSpeed>
     {
         [NativeSetThreadIndex]

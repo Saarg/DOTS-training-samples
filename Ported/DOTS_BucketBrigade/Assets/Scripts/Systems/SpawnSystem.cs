@@ -23,7 +23,11 @@ public class SpawnSystem : JobComponentSystem
         // the number of omnibots 
         var botCount = gameMaster.NbChains * gameMaster.NbBotsPerChain + gameMaster.NbChains * 2 + gameMaster.NbOmnibots;
         // Spawn Bots
-        SpawnEntities(grid, botCount, gameMaster.BotPrefab, gameMaster.NbRows, gameMaster.NbCols);
+        //SpawnEntities(grid, botCount, gameMaster.BotPrefab, gameMaster.NbRows, gameMaster.NbCols);
+        for (var i = 0; i < gameMaster.NbChains; ++i)
+        {
+            SpawnChain(gameMaster.NbBotsPerChain, 0, gameMaster.NbCols, 0.0f, gameMaster.NbRows);
+        }
 
         // Spawn buckets
         SpawnEntities(grid, gameMaster.NbBuckets, gameMaster.BucketPrefab, gameMaster.NbRows, gameMaster.NbCols);
@@ -35,6 +39,79 @@ public class SpawnSystem : JobComponentSystem
         EntityManager.DestroyEntity(spawnPrefabEntity);
 
         return inputDeps;
+    }
+
+    void SpawnChain(int nbBots, float minX, float maxX, float minY, float maxY)
+    {
+        var gameMaster = GetSingleton<GameMaster>();
+        var chainEntity = EntityManager.CreateEntity();
+        var chainSharedComponent = new ChainParentComponent{Chain = chainEntity};
+
+        var sourceEntity = EntityManager.CreateEntity();
+        var targetEntity = EntityManager.CreateEntity();
+        var randomSeed = new Random((uint)System.DateTime.Now.Ticks);
+        EntityManager.AddComponentData(sourceEntity, new PositionInGrid
+        {
+            Value = randomSeed.NextInt2((int)maxX)
+        });
+
+        EntityManager.AddComponentData(targetEntity, new PositionInGrid
+        {
+            Value = randomSeed.NextInt2((int)maxX)
+        });
+
+        EntityManager.AddComponentData(chainEntity, new FromTo
+        {
+            Source = sourceEntity,
+            Target = targetEntity
+        });
+
+        var previous = Entity.Null;
+        var currentInline = Entity.Null;
+        int i;
+        for ( i = 0; i < nbBots; ++i )
+        {
+            var botEntity = SpawnBot(chainSharedComponent, gameMaster.BotPrefab, minX, maxX, minY, maxY);
+            if (currentInline != Entity.Null)
+            {
+                EntityManager.AddComponentData(currentInline, new InLine
+                {
+                    Previous = previous,
+                    Next = botEntity,
+                    Progress = ((float) i - 1) / nbBots
+                });
+            }
+
+            previous = currentInline;
+            currentInline = botEntity;
+        }
+        
+        if (currentInline != Entity.Null)
+        {
+            EntityManager.AddComponentData(currentInline, new InLine
+            {
+                Previous = previous,
+                Next = Entity.Null,
+                Progress = ((float) i) / nbBots
+            });
+        }
+    }
+    
+
+    Entity SpawnBot(ChainParentComponent chain, Entity prefab, float minX, float maxX, float minY, float maxY)
+    {
+        var botEntity = EntityManager.Instantiate(prefab);
+
+        EntityManager.AddComponentData(botEntity, new MovementSpeed {Value = 0.1f});
+        EntityManager.AddSharedComponentData(botEntity, chain);
+        
+        var randomSeed = new Random((uint)System.DateTime.Now.Ticks);
+        EntityManager.AddComponentData(botEntity, new Position2D
+        {
+            Value = new float2(randomSeed.NextFloat(minX, maxX), randomSeed.NextFloat(minY, maxY))
+        });
+
+        return botEntity;
     }
 
     void SpawnEntities(Grid grid, int count, Entity prefab, int nbRows, int nbCols, bool isInGrid = false)
