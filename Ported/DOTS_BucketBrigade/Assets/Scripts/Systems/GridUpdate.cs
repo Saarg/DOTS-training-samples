@@ -131,7 +131,8 @@ public class GridUpdate : JobComponentSystem
             Grid = grid.Simulation
         };
         var newFireJobHandle = newFireJob.ScheduleSingle(this, clearSimGridJobHandle);
-        
+
+        var physical = grid.Physical.AsParallelWriter();
         var waterUpdateJobHandle = Entities.WithChangeFilter<WaterTag>().WithAll<WaterTag>()
             .ForEach((Entity entity, in Position2D position2D, in Capacity capacity) =>
             {
@@ -142,10 +143,8 @@ public class GridUpdate : JobComponentSystem
                 {
                     for (offset.x = -radius; offset.x < radius; offset.x++)
                     {
-                        var cell = grid.Physical[gridPos + offset];
-                        cell.Entity = entity;
-                        cell.Flags = Grid.Cell.ContentFlags.Water;
-                        grid.Physical[gridPos + offset] = cell;
+                        var cell = new Grid.Cell {Entity = entity, Flags = Grid.Cell.ContentFlags.Water};
+                        physical.TryAdd(gridPos + offset, cell);
                     }
                 }
             }).Schedule(newFireJobHandle);
