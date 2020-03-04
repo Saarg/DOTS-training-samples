@@ -1,11 +1,12 @@
-﻿using Unity.Collections;
+﻿using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity, IDeclareReferencedPrefabs
 {
     [Header("Game")]
     [SerializeField, Tooltip("The number of chains spawned with each the number of firefighters below.")]
@@ -144,5 +145,12 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         dstManager.RemoveComponent<Translation>(entity);
         dstManager.RemoveComponent<Rotation>(entity);
         dstManager.RemoveComponent<LocalToWorld>(entity);
+    }
+
+    public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)
+    {
+        referencedPrefabs.Add(Bucket_Prefab);
+        referencedPrefabs.Add(Fire_Prefab);
+        referencedPrefabs.Add(Bot_Prefab);
     }
 }
