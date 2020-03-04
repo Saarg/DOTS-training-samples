@@ -6,11 +6,12 @@ public class FillingSystem : SystemBase
     protected override void OnUpdate()
     {
         var deltaTime = Time.DeltaTime;
-        
-        Entities.WithChangeFilter<FillRate>().WithNone<BucketTag>().ForEach((ref GradientState gradientState, 
-            in FillRate fillState, in Capacity capacity) =>
+
+        var waterSingleton = GetSingleton<WaterMaster>();
+        Entities.WithNone<BucketTag>().ForEach((ref GradientState gradientState, 
+            in Capacity capacity) =>
         {
-            gradientState.Value = math.min(capacity.Value, gradientState.Value + fillState.Value * deltaTime);
+            gradientState.Value = math.min(capacity.Value, gradientState.Value + waterSingleton.RefillRate * deltaTime);
         }).Schedule();
     }
 }
