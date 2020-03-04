@@ -9050,12 +9050,12 @@ PrefabInstance:
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
       propertyPath: Fire_HeatTransferRate
-      value: 0.757
+      value: 0.18
       objectReference: {fileID: 0}
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
       propertyPath: Fire_Flashpoint
-      value: 0.336
+      value: 0.345
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0d2423c3e9d44b3086493883e9cc3a5, type: 3}
