@@ -8,7 +8,7 @@ using Unity.Transforms;
 [UpdateAfter(typeof(ConsolidateFireFront))] 
 public class SpreadFire : JobComponentSystem
 {
-    private EndSimulationEntityCommandBufferSystem m_CommandBufferSystem;
+    private BeginSimulationEntityCommandBufferSystem m_CommandBufferSystem;
     
     // FIXME(tim): should account for grid radius
     private static readonly NativeArray<int2> m_AroundCells = new NativeArray<int2>(new int2[]
@@ -28,7 +28,7 @@ public class SpreadFire : JobComponentSystem
     {
         m_CommandBufferSystem = World
             .DefaultGameObjectInjectionWorld
-            .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            .GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
     }
 
     protected override JobHandle OnUpdate(JobHandle inputDeps)

@@ -21,13 +21,13 @@ public class ConsolidateFireFront : JobComponentSystem
         new int2(1, 1),
     }, Allocator.Persistent);
     
-    private EndSimulationEntityCommandBufferSystem m_CommandBufferSystem;
+    private BeginSimulationEntityCommandBufferSystem m_CommandBufferSystem;
     
     protected override void OnCreate()
     {
         m_CommandBufferSystem = World
             .DefaultGameObjectInjectionWorld
-            .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            .GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
     }
     protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
