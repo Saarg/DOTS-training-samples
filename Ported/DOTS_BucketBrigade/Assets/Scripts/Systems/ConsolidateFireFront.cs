@@ -59,6 +59,9 @@ public class ConsolidateFireFront : JobComponentSystem
                     for (var i = 0; i < aroundCells.Length; ++i)
                     {
                         var currentPos = aroundCells[i] + posInGrid.Value;
+
+                        if (math.any(math.abs(currentPos) > 120))
+                            continue;
                         
                         if (simParallelGrid.TryAdd(currentPos, 0))
                         {
