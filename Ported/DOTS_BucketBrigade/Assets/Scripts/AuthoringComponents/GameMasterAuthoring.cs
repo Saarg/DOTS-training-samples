@@ -106,7 +106,8 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 
         dstManager.AddComponentData(entity, new Grid
         {
-            Value = new UnsafeHashMap<int2, Grid.Cell>(NbRows * NbCols, Allocator.Persistent),
+            Physical = new UnsafeHashMap<int2, Grid.Cell>(NbRows * NbCols, Allocator.Persistent),
+            Simulation = new UnsafeHashMap<int2, int>(NbRows * NbCols, Allocator.Persistent),
             CellSize = CellSize
         });
 
