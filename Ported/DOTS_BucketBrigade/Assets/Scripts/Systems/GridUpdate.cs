@@ -73,4 +73,12 @@ public class GridUpdate : JobComponentSystem
 
         return newFireJobHandle;
     }
+
+    protected override void OnDestroy()
+    {
+        var grid = GetSingleton<Grid>();
+
+        grid.Physical.Dispose();
+        grid.Simulation.Dispose();
+    }
 }
