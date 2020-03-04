@@ -131,8 +131,26 @@ public class GridUpdate : JobComponentSystem
             Grid = grid.Simulation
         };
         var newFireJobHandle = newFireJob.ScheduleSingle(this, clearSimGridJobHandle);
+        
+        var waterUpdateJobHandle = Entities.WithAll<WaterTag>()
+            .ForEach((Entity entity, in Position2D position2D, in Capacity capacity) =>
+            {
+                var gridPos = grid.ToGridPos(position2D);
+                var offset = int2.zero;
+                var radius = capacity.Value * 0.1f;
+                for (var x = -radius; x < radius; x++)
+                {
+                    for (var y = -radius; y < radius; y++)
+                    {
+                        var cell = grid.Physical[gridPos + offset];
+                        cell.Entity = entity;
+                        cell.Flags = Grid.Cell.ContentFlags.Water;
+                        grid.Physical[gridPos + offset] = cell;
+                    }
+                }
+            }).Schedule(newFireJobHandle);
 
-        return newFireJobHandle;
+        return waterUpdateJobHandle;
     }
 
     protected override void OnDestroy()
