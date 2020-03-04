@@ -87,7 +87,7 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 
     [Header("Bots")]
     [SerializeField, Range(0.1f, 2.0f), Tooltip("The speed at which the bot moves.")]
-    public float Bot_Speed = 0.5f;
+    public float Bot_Speed;
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
@@ -98,7 +98,6 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             NbBuckets = NbBuckets,
             NbOmnibots = NbOmnibots,
             NbFires = NbFires,
-
             BucketPrefab = conversionSystem.GetPrimaryEntity(Bucket_Prefab),
             BotPrefab = conversionSystem.GetPrimaryEntity(Bot_Prefab),
             FirePrefab = conversionSystem.GetPrimaryEntity(Fire_Prefab)
@@ -106,7 +105,7 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 
         dstManager.AddComponentData(entity, new Grid
         {
-            Value = new UnsafeHashMap<int2, Grid.Cell>(NbRows * NbCols, Allocator.Persistent),
+            Map = new UnsafeMultiHashMap<int2, Entity>(NbRows * NbCols, Allocator.Persistent),
             CellSize = CellSize
         });
 

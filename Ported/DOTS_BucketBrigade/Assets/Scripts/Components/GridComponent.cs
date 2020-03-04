@@ -16,4 +16,5 @@ public struct Grid : IComponentData
         public ContentFlags Flags;
     }
     public UnsafeHashMap<int2, Cell> Value;
+	public float CellSize;
 }
