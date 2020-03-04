@@ -11,6 +11,9 @@ public class GridUpdate : JobComponentSystem
     {
         var grid = GetSingleton<Grid>();
 
+        grid.Physical.Capacity = grid.Physical.Length + grid.Simulation.Length;
+        grid.Simulation.Capacity = grid.Simulation.Length * 2;
+
         Entities.WithStructuralChanges().ForEach((Entity entity, ToDeleteFromGridTag tag, PositionInGrid pos) =>
         {
             grid.Physical.Remove(pos.Value);

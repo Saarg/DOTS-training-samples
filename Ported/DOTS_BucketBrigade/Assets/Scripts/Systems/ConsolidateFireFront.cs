@@ -3,6 +3,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Transforms;
 
 //[UpdateAfter()]
 public class ConsolidateFireFront : JobComponentSystem
@@ -55,14 +56,20 @@ public class ConsolidateFireFront : JobComponentSystem
                     ecb.RemoveComponent<FireFrontTag>(entityInQueryIndex, entity);
 
                     // Spawn pre-fires around the fire
-                    // First: grad ownership of the entities to spawn
-                    foreach (var pos in aroundCells)
+                    for (var i = 0; i < aroundCells.Length; ++i)
                     {
-                        var currentPos = pos + posInGrid.Value;
+                        var currentPos = aroundCells[i] + posInGrid.Value;
+                        
                         if (simParallelGrid.TryAdd(currentPos, 0))
                         {
                             var preFireEntity = ecb.Instantiate(entityInQueryIndex, gameMaster.FirePrefab);
                             ecb.AddComponent<PreFireTag>(entityInQueryIndex, preFireEntity);
+                            ecb.RemoveComponent<NewFireTag>(entityInQueryIndex, preFireEntity);
+                            ecb.AddComponent<PositionInGrid>(entityInQueryIndex, preFireEntity, new PositionInGrid{ Value = currentPos });
+                            ecb.SetComponent<GradientState>(entityInQueryIndex, preFireEntity, new GradientState());
+                            
+                            // FIXME: remove
+                            ecb.SetComponent<Translation>(entityInQueryIndex, preFireEntity, new Translation(){ Value = (float3)(new int3(currentPos.x, -1, currentPos.y))});
                         }
                     }
                 })
@@ -73,9 +80,9 @@ public class ConsolidateFireFront : JobComponentSystem
         var removeFireFrontHandle = Entities.ForEach((Entity entity, int entityInQueryIndex, FireFrontTag tag, PositionInGrid posInGrid) =>
             {
                 var isInFront = true;
-                foreach (var pos in aroundCells)
+                for (var i = 0; i < aroundCells.Length; ++i)
                 {
-                    if (grid.Physical.ContainsKey(pos))
+                    if (grid.Physical.ContainsKey(posInGrid.Value + aroundCells[i]))
                         isInFront = false;
                 }
                 

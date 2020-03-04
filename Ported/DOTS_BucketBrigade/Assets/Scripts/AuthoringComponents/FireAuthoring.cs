@@ -7,5 +7,8 @@ public class FireAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     {
         dstManager.AddComponent<FireTag>(entity);
         dstManager.AddComponent<PositionInGrid>(entity);
+        dstManager.AddComponent<NewFireTag>(entity);
+        
+        dstManager.AddComponentData<GradientState>(entity, new GradientState { Value = 1.0f });
     }
 }
