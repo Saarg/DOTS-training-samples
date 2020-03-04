@@ -40,6 +40,7 @@ public class GridUpdate : JobComponentSystem
     protected override void OnCreate()
     {
         m_CommandBufferSystem = World.GetOrCreateSystem<EndInitializationEntityCommandBufferSystem>();
+        RequireSingletonForUpdate<Grid>();
     }
 
     protected override JobHandle OnUpdate(JobHandle inputDeps)
