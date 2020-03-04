@@ -6,7 +6,6 @@ using Unity.Mathematics;
 using Unity.Transforms;
 
 [UpdateAfter(typeof(ConsolidateFireFront))] 
-[UpdateAfter(typeof(FillingSystem))]
 public class SpreadFire : JobComponentSystem
 {
     private EndSimulationEntityCommandBufferSystem m_CommandBufferSystem;
