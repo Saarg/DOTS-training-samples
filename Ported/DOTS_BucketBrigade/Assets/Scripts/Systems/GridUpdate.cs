@@ -11,13 +11,13 @@ public class GridUpdate : JobComponentSystem
     {
         var grid = GetSingleton<Grid>();
 
-        Entities.ForEach((Entity entity, ToDeleteFromGridTag tag, PositionInGrid pos) =>
+        Entities.WithStructuralChanges().ForEach((Entity entity, ToDeleteFromGridTag tag, PositionInGrid pos) =>
         {
             grid.Physical.Remove(pos.Value);
             EntityManager.DestroyEntity(entity);
         }).Run();
         
-        Entities.ForEach((Entity entity, NewFireTag tag, PositionInGrid pos) =>
+        Entities.WithStructuralChanges().ForEach((Entity entity, NewFireTag tag, PositionInGrid pos) =>
         {
             grid.Simulation.Remove(pos.Value);
         }).Run();
