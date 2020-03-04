@@ -11,8 +11,8 @@ public class GridUpdate : JobComponentSystem
     {
         var grid = GetSingleton<Grid>();
 
-        grid.Physical.Capacity = grid.Physical.Length + grid.Simulation.Length;
-        grid.Simulation.Capacity = grid.Simulation.Length * 2;
+        grid.Physical.Capacity = math.max(grid.Physical.Capacity, grid.Physical.Length + grid.Simulation.Length);
+        grid.Simulation.Capacity = math.max(grid.Simulation.Capacity, grid.Simulation.Length * 2);
 
         Entities.WithStructuralChanges().ForEach((Entity entity, ToDeleteFromGridTag tag, PositionInGrid pos) =>
         {
