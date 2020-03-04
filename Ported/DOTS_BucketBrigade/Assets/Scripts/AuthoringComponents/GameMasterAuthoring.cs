@@ -13,7 +13,7 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity, ID
     public int NbChains = 2;
 
     [SerializeField, Tooltip("The number of firefighters in each chain, half will fill buckets, half will fight the fire.")]
-    public int NbFirefightersPerChain = 30;
+    public int NbBotsPerChain = 30;
 
     [SerializeField, Range(0, 10), Tooltip("The number of omnibots, they serve multiple purposes at once.")]
     public int NbOmnibots = 5;
@@ -95,10 +95,13 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity, ID
         dstManager.AddComponentData(entity, new GameMaster
         {
             NbChains = NbChains,
-            NbFirefightersPerChain = NbFirefightersPerChain,
+            NbBotsPerChain = NbBotsPerChain,
             NbBuckets = NbBuckets,
             NbOmnibots = NbOmnibots,
             NbFires = NbFires,
+
+            NbCols = NbCols,
+            NbRows = NbRows,
 
             BucketPrefab = conversionSystem.GetPrimaryEntity(Bucket_Prefab),
             BotPrefab = conversionSystem.GetPrimaryEntity(Bot_Prefab),
@@ -145,6 +148,10 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity, ID
         dstManager.RemoveComponent<Translation>(entity);
         dstManager.RemoveComponent<Rotation>(entity);
         dstManager.RemoveComponent<LocalToWorld>(entity);
+
+        // Create the spawn prefab entity, so the SpawnSystem knows this entity is ready.
+        var spawnEntity = conversionSystem.CreateAdditionalEntity(this);
+        dstManager.AddComponent<SpawnPrefabsTag>(spawnEntity);
     }
 
     public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)

@@ -86,7 +86,7 @@ public class SpreadFire : JobComponentSystem
 
                         // FIXME: remove
                         ecb.SetComponent<Translation>(entityInQueryIndex, entity,
-                            new Translation() {Value = (float3) (new int3(posInGrid.Value.x, 0, posInGrid.Value.y))});
+                            new Translation() {Value = new float3(posInGrid.Value.x, 0.5f, posInGrid.Value.y)});
                     }
                 })
             .Schedule(simFireHandle);

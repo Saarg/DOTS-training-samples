@@ -42,3 +42,5 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+*.cs~
+Ported/DOTS_BucketBrigade/ProjectSettings/BurstAotSettings_StandaloneOSX.json

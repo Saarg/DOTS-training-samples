@@ -8,3 +8,4 @@ public struct FireFrontTag : IComponentData { }
 public struct PreFireTag : IComponentData { }
 public struct NewFireTag : IComponentData { }
 public struct ToDeleteFromGridTag : IComponentData { }
+public struct SpawnPrefabsTag : IComponentData { }

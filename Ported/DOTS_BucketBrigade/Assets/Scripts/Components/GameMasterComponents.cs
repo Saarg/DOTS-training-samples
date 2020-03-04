@@ -4,10 +4,13 @@ public struct GameMaster : IComponentData
 {
     // Game setup
     public int NbChains;
-    public int NbFirefightersPerChain;
+    public int NbBotsPerChain;
     public int NbBuckets;
     public int NbOmnibots;
     public int NbFires;
+
+    public int NbCols;
+    public int NbRows;
 
     // Prefabs
     public Entity BucketPrefab;
