@@ -46,8 +46,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NbChains: 2
   NbFirefightersPerChain: 30
+  NbOmnibots: 5
+  NbBuckets: 3
+  NbFires: 1
+  Bucket_Prefab: {fileID: 1773963921688032, guid: 21453d7c41a524c75a91804591a6fe6c,
+    type: 3}
+  Fire_Prefab: {fileID: 1306931638197496, guid: d7a01ef6fae964c9397ffd074f2fe9c0,
+    type: 3}
+  Bot_Prefab: {fileID: 1821148559735918, guid: 0c03d8542921d4db4bbdfa1e08417491, type: 3}
   NbRows: 50
   NbCols: 50
+  CellSize: 1
+  Fire_MaxHeight: 0.1
+  Fire_Flashpoint: 0.25
+  Fire_HeatRadius: 1
+  Fire_HeatTransferRate: 0.75
+  Water_CoolingStrength: 1
+  Water_CoolingStrengthFallOff: 0.7
+  Water_RefillRate: 0.1
+  Water_SplashRadius: 3
+  Water_CarryMultiplier: 0.5
+  Bucket_Capacity: 1
+  Bucket_FillRate: 0.1
+  Bucket_Size_Empty: 0.2
+  Bucket_Size_Full: 0.4
+  Bot_Speed: 0.5
 --- !u!114 &2166879065173840105
 MonoBehaviour:
   m_ObjectHideFlags: 0
