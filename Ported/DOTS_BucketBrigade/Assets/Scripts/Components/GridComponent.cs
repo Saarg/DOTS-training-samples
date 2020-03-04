@@ -22,16 +22,16 @@ public struct Grid : IComponentData
     public UnsafeHashMap<int2, int /*<unused>*/> Simulation;
 	public float CellSize;
 
-    int2 ToGridPos(Position2D position2D) => ToGridPos(position2D.Value);
-    int2 ToGridPos(float3 position) => ToGridPos(position.xz);
-    int2 ToGridPos(float2 position2D)
+    public int2 ToGridPos(Position2D position2D) => ToGridPos(position2D.Value);
+    public int2 ToGridPos(float3 position) => ToGridPos(position.xz);
+    public int2 ToGridPos(float2 position2D)
     {
         return (int2) math.floor(position2D / CellSize);
     }
 
-    float2 ToPos2D(PositionInGrid gridPos) => ToPos2D(gridPos.Value);
-    float2 ToPos2D(int2 gridPos)
+    public float2 ToPos2D(PositionInGrid gridPos) => ToPos2D(gridPos.Value);
+    public float2 ToPos2D(int2 gridPos)
     {
-        return (float2) (gridPos) * CellSize;
+        return (float2) (gridPos) * CellSize + CellSize / 2.0f;
     }
 }
