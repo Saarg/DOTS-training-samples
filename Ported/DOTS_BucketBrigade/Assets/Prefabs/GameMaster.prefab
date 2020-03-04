@@ -58,9 +58,9 @@ MonoBehaviour:
   NbCols: 50
   CellSize: 1
   Fire_MaxHeight: 0.1
-  Fire_Flashpoint: 0.25
+  Fire_Flashpoint: 0.7
   Fire_HeatRadius: 1
-  Fire_HeatTransferRate: 0.75
+  Fire_HeatTransferRate: 0.1
   Water_CoolingStrength: 1
   Water_CoolingStrengthFallOff: 0.7
   Water_RefillRate: 0.1

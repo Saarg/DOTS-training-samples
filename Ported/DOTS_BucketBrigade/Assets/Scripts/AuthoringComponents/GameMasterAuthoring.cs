@@ -54,7 +54,7 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity, ID
     [SerializeField, Range(1, 5), Tooltip("How far (cells) does heat travel?")]
     public int Fire_HeatRadius = 1;
 
-    [SerializeField, Range(0.5f, 1.0f), Tooltip("How fast will adjacent cells heat up?")]
+    [SerializeField, Range(0.01f, 1.0f), Tooltip("How fast will adjacent cells heat up?")]
     public float Fire_HeatTransferRate = 0.75f;
 
     [Header("Water")]
