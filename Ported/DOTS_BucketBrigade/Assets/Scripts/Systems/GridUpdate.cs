@@ -132,7 +132,7 @@ public class GridUpdate : JobComponentSystem
         };
         var newFireJobHandle = newFireJob.ScheduleSingle(this, clearSimGridJobHandle);
         
-        var waterUpdateJobHandle = Entities.WithAll<WaterTag>()
+        var waterUpdateJobHandle = Entities.WithChangeFilter<WaterTag>().WithAll<WaterTag>()
             .ForEach((Entity entity, in Position2D position2D, in Capacity capacity) =>
             {
                 var gridPos = grid.ToGridPos(position2D);
