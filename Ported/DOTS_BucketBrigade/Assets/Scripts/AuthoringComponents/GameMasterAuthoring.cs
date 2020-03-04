@@ -34,6 +34,28 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity, ID
     [SerializeField, Tooltip("The prefab for the bot.")]
     public GameObject Bot_Prefab;
 
+    [Header("Colors")]
+    [SerializeField, Tooltip("Color of a cell in a cool state.")]
+    public Color CellColor_Cool;
+    [SerializeField, Tooltip("Color of a cell in hot state.")]
+    public Color CellColor_Hot;
+
+    [SerializeField, Tooltip("Color of a bot with the task to fill the buck with water.")]
+    public Color BotColor_Fill;
+    [SerializeField, Tooltip("Color of a bot with the task to pass a full bucket of water.")]
+    public Color BotColor_PassFull;
+    [SerializeField, Tooltip("Color of a bot with the task to pass an empty bucket of water.")]
+    public Color BotColor_PassEmpty;
+    [SerializeField, Tooltip("Color of a bot with the task to throw a full bucket on the fire.")]
+    public Color BotColor_Throw;
+    [SerializeField, Tooltip("Color of a bot with the task to do everything.")]
+    public Color BotColor_Omnibot;
+
+    [SerializeField, Tooltip("Color of an empty bucket.")]
+    public Color BucketColor_Empty;
+    [SerializeField, Tooltip("Color of a full bucket.")]
+    public Color BucketColor_Full;
+
     [Header("Grid")]
     [SerializeField, Tooltip("The number of rows in the fire grid.")]
     public int NbRows = 50;
@@ -106,6 +128,21 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity, ID
             BucketPrefab = conversionSystem.GetPrimaryEntity(Bucket_Prefab),
             BotPrefab = conversionSystem.GetPrimaryEntity(Bot_Prefab),
             FirePrefab = conversionSystem.GetPrimaryEntity(Fire_Prefab)
+        });
+
+        dstManager.AddComponentData(entity, new ColorMaster
+        {
+            CellColor_Cool = CellColor_Cool,
+            CellColor_Hot = CellColor_Hot,
+
+            BotColor_Fill= BotColor_Fill,
+            BotColor_PassFull = BotColor_PassFull,
+            BotColor_PassEmpty = BotColor_PassEmpty,
+            BotColor_Throw = BotColor_Throw,
+            BotColor_Omnibot = BotColor_Omnibot,
+
+            BucketColor_Empty = BucketColor_Empty,
+            BucketColor_Full = BucketColor_Full
         });
 
         dstManager.AddComponentData(entity, new Grid

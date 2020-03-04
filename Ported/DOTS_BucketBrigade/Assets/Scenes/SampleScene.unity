@@ -8947,6 +8947,106 @@ PrefabInstance:
       propertyPath: NbFires
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: CellColor_Cool.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: CellColor_Cool.g
+      value: 0.9882353
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: CellColor_Cool.b
+      value: 0.5137255
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: CellColor_Hot.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BotColor_Fill.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BotColor_Fill.b
+      value: 0.15294118
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BotColor_PassFull.r
+      value: 0.77254903
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BotColor_PassFull.g
+      value: 0.9254902
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BotColor_PassFull.b
+      value: 0.7372549
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BotColor_PassEmpty.r
+      value: 0.93333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BotColor_PassEmpty.g
+      value: 0.7529412
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BotColor_PassEmpty.b
+      value: 0.9254902
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BotColor_Throw.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BotColor_Throw.g
+      value: 0.4745098
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BotColor_Throw.b
+      value: 0.9372549
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BucketColor_Empty.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BucketColor_Empty.g
+      value: 0.4117647
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BucketColor_Empty.b
+      value: 0.45882353
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BucketColor_Full.g
+      value: 0.98039216
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: BucketColor_Full.b
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0d2423c3e9d44b3086493883e9cc3a5, type: 3}
 --- !u!1001 &1840734575
