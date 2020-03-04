@@ -15,6 +15,8 @@ public struct Grid : IComponentData
         public Entity Entity;
         public ContentFlags Flags;
     }
-    public UnsafeHashMap<int2, Cell> Value;
+    
+    public UnsafeHashMap<int2, Cell> Physical;
+    public UnsafeHashMap<int2, int /*<unused>*/> Simulation;
 	public float CellSize;
 }

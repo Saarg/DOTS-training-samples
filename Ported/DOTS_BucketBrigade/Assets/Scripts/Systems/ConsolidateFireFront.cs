@@ -35,7 +35,7 @@ public class ConsolidateFireFront : JobComponentSystem
                 var isInFront = true;
                 foreach (var pos in aroundPos)
                 {
-                    if (grid.Value.ContainsKey(pos))
+                    if (grid.Physical.ContainsKey(pos))
                         isInFront = false;
                 }
                 
