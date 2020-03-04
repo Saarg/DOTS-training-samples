@@ -35,18 +35,44 @@ public class ConsolidateFireFront : JobComponentSystem
         var grid = GetSingleton<Grid>();
         var gameMaster = GetSingleton<GameMaster>();
         var aroundCells = m_AroundCells;
-
-        // Spawn Fires
         var physicalParallelGrid = grid.Physical.AsParallelWriter();
         var simParallelGrid = grid.Simulation.AsParallelWriter();
-        var spawnFireHandle = Entities.ForEach(
-                (Entity entity, int entityInQueryIndex, NewFireTag tag, PositionInGrid posInGrid) =>
+
+        // Check sim-fires and remove those that aren't a smi-fire anymore
+        var removeSimFireHandle = Entities
+            .WithNone<ToDeleteFromGridTag>()
+            .WithAll<PreFireTag>()
+            .ForEach(
+            (Entity entity, int entityInQueryIndex, in PositionInGrid posInGrid) =>
+            {
+                // Check that a fire is somewhere around the fire sim
+                for (var i = 0; i < aroundCells.Length; ++i)
+                {
+                    var currentPos = aroundCells[i] + posInGrid.Value;
+                    if (grid.Physical.TryGetValue(currentPos, out Grid.Cell cell) && cell.Flags == Grid.Cell.ContentFlags.Fire)
+                    {
+                        return;
+                    }
+                }
+                
+                // We got here, so none is present, so remove the fire-sim:
+                ecb.AddComponent<ToDeleteFromGridTag>(entityInQueryIndex, entity);
+            })
+            .WithReadOnly(aroundCells)
+            .Schedule(inputDeps);
+        
+        // Spawn Fires
+        var spawnFireHandle = Entities
+            .WithNone<ToDeleteFromGridTag>()
+            .WithAll<NewFireTag>()
+            .ForEach(
+                (Entity entity, int entityInQueryIndex, in PositionInGrid posInGrid) =>
                 {
                     // Add to the grid
                     if (!physicalParallelGrid.TryAdd(posInGrid.Value,
                         new Grid.Cell {Entity = entity, Flags = Grid.Cell.ContentFlags.Fire}))
                     {
-                        // There's already something !
+                        // There's already something ! (we cannot use ToDeleteFromGrid as the grid already has something)
                         ecb.DestroyEntity(entityInQueryIndex, entity);
                         return;
                     }
@@ -77,10 +103,13 @@ public class ConsolidateFireFront : JobComponentSystem
                     }
                 })
             .WithReadOnly(aroundCells)
-            .Schedule(inputDeps);
+            .Schedule(removeSimFireHandle);
         
         // Remove the FireFrontTag of fires that aren't in the front of the fire
-        var removeFireFrontHandle = Entities.ForEach((Entity entity, int entityInQueryIndex, FireFrontTag tag, PositionInGrid posInGrid) =>
+        var removeFireFrontHandle = Entities
+            .WithNone<ToDeleteFromGridTag>()
+            .WithAll<FireFrontTag>()
+            .ForEach((Entity entity, int entityInQueryIndex, in PositionInGrid posInGrid) =>
             {
                 var isInFront = true;
                 for (var i = 0; i < aroundCells.Length; ++i)

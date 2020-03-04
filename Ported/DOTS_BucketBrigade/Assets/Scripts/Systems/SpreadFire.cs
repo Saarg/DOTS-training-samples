@@ -44,7 +44,10 @@ public class SpreadFire : JobComponentSystem
 
         float dt = Time.DeltaTime;
         
-        var simFireHandle = Entities.ForEach((Entity entity, int entityInQueryIndex, ref GradientState state, in FireTag tag, in PositionInGrid posInGrid) =>
+        var simFireHandle = Entities
+            .WithAll<FireTag>()
+            .WithNone<MaxOutFireTag>()
+            .ForEach((Entity entity, int entityInQueryIndex, ref GradientState state, in PositionInGrid posInGrid) =>
                 {
                     float acc = 0;
                     // Compute transfer rate
@@ -64,18 +67,27 @@ public class SpreadFire : JobComponentSystem
 
                     // Harry, you're a fire
                     state.Value += acc;
+
+                    // When Maxed-out, don't update the fire anymore unless something happens
+                    if (state.Value >= 1.0f)
+                    {
+                        state.Value = 1.0f;
+                        ecb.AddComponent<MaxOutFireTag>(entityInQueryIndex, entity);
+                    }
                 })
             .WithReadOnly(aroundCells)
             .WithReadOnly(gradientStateData)
             .WithNativeDisableContainerSafetyRestriction(gradientStateData)
             .Schedule(inputDeps);
         
-        var spreadHandle = Entities.ForEach((Entity entity, int entityInQueryIndex, in GradientState state, in PreFireTag tag, in PositionInGrid posInGrid) =>
+        var spreadHandle = Entities
+            .WithAll<PreFireTag>()
+            .ForEach((Entity entity, int entityInQueryIndex, in GradientState state, in PositionInGrid posInGrid) =>
                 {
                     // something is already present in this cell, we should be deleted
                     if (grid.Physical.ContainsKey(posInGrid.Value))
                     {
-                        ecb.DestroyEntity(entityInQueryIndex, entity);
+                        ecb.AddComponent<ToDeleteFromGridTag>(entityInQueryIndex, entity);
                         return;
                     }
                     if (state.Value > fireMaster.Flashpoint)
