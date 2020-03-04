@@ -23,6 +23,17 @@ public class SpreadFire : JobComponentSystem
         new int2(1, 0),
         new int2(1, 1),
     }, Allocator.Persistent);
+
+    private static uint InvwkRnd(ref uint seed)
+    {
+        seed += ((seed * seed) | 5u);
+        return seed;
+    }
+
+    private static float InvwkRndf(ref uint seed)
+    {
+        return math.asfloat((InvwkRnd(ref seed) >> 9) | 0x3f800000) - 1.0f;
+    }
     
     protected override void OnCreate()
     {
@@ -43,13 +54,16 @@ public class SpreadFire : JobComponentSystem
         var gradientStateData = GetComponentDataFromEntity<GradientState>(true);
 
         float dt = Time.DeltaTime;
+        uint seed = math.asuint(dt);
+        InvwkRnd(ref seed);
         
         var simFireHandle = Entities
             .WithAll<FireTag>()
             .WithNone<MaxOutFireTag>()
-            .ForEach((Entity entity, int entityInQueryIndex, ref GradientState state, in PositionInGrid posInGrid) =>
+            .ForEach((Entity entity, int entityInQueryIndex, ref GradientState state, ref Translation t, in PositionInGrid posInGrid) =>
                 {
                     float acc = 0;
+                    uint rseed = seed + (uint)entityInQueryIndex + math.asuint(state.Value);
                     // Compute transfer rate
                     for (var i = 0; i < aroundCells.Length; ++i)
                     {
@@ -61,7 +75,7 @@ public class SpreadFire : JobComponentSystem
 
                             float sign = (cell.Flags == Grid.Cell.ContentFlags.Fire ? 1 : -1);
 
-                            acc += sign * gs.Value * fireMaster.HeatTransferRate * dt;
+                            acc += sign * gs.Value * fireMaster.HeatTransferRate * dt * InvwkRndf(ref rseed);
                         }
                     }
 
@@ -73,6 +87,10 @@ public class SpreadFire : JobComponentSystem
                     {
                         state.Value = 1.0f;
                         ecb.AddComponent<MaxOutFireTag>(entityInQueryIndex, entity);
+                    }
+                    else
+                    {
+                        t.Value.y = (state.Value - fireMaster.Flashpoint) / (1.0f - fireMaster.Flashpoint);
                     }
                 })
             .WithReadOnly(aroundCells)
