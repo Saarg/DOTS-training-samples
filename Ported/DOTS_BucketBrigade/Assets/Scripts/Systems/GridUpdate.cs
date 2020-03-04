@@ -137,10 +137,10 @@ public class GridUpdate : JobComponentSystem
             {
                 var gridPos = grid.ToGridPos(position2D);
                 var offset = int2.zero;
-                var radius = capacity.Value * 0.1f;
-                for (var x = -radius; x < radius; x++)
+                int radius = (int)math.round(capacity.Value * 0.1f);
+                for (offset.y = -radius; offset.y < radius; offset.y++)
                 {
-                    for (var y = -radius; y < radius; y++)
+                    for (offset.x = -radius; offset.x < radius; offset.x++)
                     {
                         var cell = grid.Physical[gridPos + offset];
                         cell.Entity = entity;
