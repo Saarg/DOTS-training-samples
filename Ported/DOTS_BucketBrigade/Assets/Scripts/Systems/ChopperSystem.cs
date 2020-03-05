@@ -55,7 +55,7 @@ public class ChopperSystem : JobComponentSystem
                         {
                             float2 dest;
                             if (c.DropFire)
-                                dest = (new float2(InvwkRndf(ref seed), InvwkRndf(ref seed)) * 2 - 1) * 50;
+                                dest = (new float2(InvwkRndf(ref seed), InvwkRndf(ref seed)) ) * 50;
                             else
                                 dest = c.IsToDropWaterOnFire ? ft.Target : ft.Source;
 
