@@ -8,8 +8,11 @@ namespace Systems
     [UpdateAfter(typeof(MoveToDestinationSystem))]
     public class BucketSystem : SystemBase
     {
+        private EntityCommandBufferSystem m_CommandBufferSystem;
+        
         protected override void OnCreate()
         {
+            m_CommandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
             RequireSingletonForUpdate<Grid>();
         }
 
@@ -19,13 +22,56 @@ namespace Systems
             var deltaTime = Time.DeltaTime;
 
             var bucketSingleton = GetSingleton<BucketMaster>();
+            var gradientFromEntity = GetComponentDataFromEntity<GradientState>();
+            var ecb = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent();
+            
             Dependency = Entities.WithNone<Carried>().WithAll<BucketTag>()
-                .ForEach((ref GradientState gradientState, ref NonUniformScale scale,
-                in Position2D position) =>
+            .ForEach((Entity entity, int nativeThreadIndex, ref NonUniformScale scale,
+            in Position2D position) =>
             {
-                switch (grid.Physical[grid.ToGridPos(position)].Flags)
+                var gradientState = gradientFromEntity[entity];
+                var gridPos = grid.ToGridPos(position);
+                switch (grid.Physical[gridPos].Flags)
                 {
                     case Grid.Cell.ContentFlags.Fire:
+                        if (gradientState.Value > 0.0f)
+                        {
+                            var offset = int2.zero;
+                            for (offset.y = -bucketSingleton.SplashRadius;
+                                offset.y < bucketSingleton.SplashRadius;
+                                offset.y++)
+                            {
+                                for (offset.x = -bucketSingleton.SplashRadius;
+                                    offset.x < bucketSingleton.SplashRadius;
+                                    offset.x++)
+                                {
+                                    if (grid.Physical.ContainsKey(gridPos + offset))
+                                    {
+                                        var cell = grid.Physical[gridPos + offset];
+
+                                        if (cell.Flags == Grid.Cell.ContentFlags.Fire)
+                                        {
+                                            var fireGradient = gradientFromEntity[cell.Entity];
+
+                                            if (fireGradient.Value >= 1.0f)
+                                            {
+                                                ecb.RemoveComponent<MaxOutFireTag>(nativeThreadIndex, cell.Entity);
+                                                ecb.AddComponent<FireFrontTag>(nativeThreadIndex, cell.Entity);
+                                            }
+
+                                            fireGradient.Value = 0.0f;
+                                                // gradientState.Value *
+                                                // bucketSingleton.CoolingStrength *
+                                                // bucketSingleton.CoolingStrengthFallOff *
+                                                // math.length(offset);
+
+                                            gradientFromEntity[cell.Entity] = fireGradient;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         gradientState.Value = 0;
                         break;
                     case Grid.Cell.ContentFlags.Water:
@@ -38,7 +84,9 @@ namespace Systems
                 }
                 
                 scale.Value = new float3(math.lerp(bucketSingleton.Size_Empty, bucketSingleton.Size_Full, gradientState.Value));
+                gradientFromEntity[entity] = gradientState;
             }).Schedule(Dependency);
+            m_CommandBufferSystem.AddJobHandleForProducer(Dependency);
 
             var position2DFromEntity = GetComponentDataFromEntity<Position2D>();
             var scaleFromEntity = GetComponentDataFromEntity<NonUniformScale>(true);

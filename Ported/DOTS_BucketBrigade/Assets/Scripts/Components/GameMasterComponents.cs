@@ -29,15 +29,15 @@ public struct FireMaster : IComponentData
 
 public struct WaterMaster : IComponentData
 {
-    public float CoolingStrength;
-    public float CoolingStrengthFallOff;
     public float RefillRate;
-    public int SplashRadius;
     public float CarryMultiplier;
 }
 
 public struct BucketMaster : IComponentData
 {
+    public float CoolingStrength;
+    public float CoolingStrengthFallOff;
+    public int SplashRadius;
     public float Capacity;
     public float FillRate;
     public float Size_Empty;

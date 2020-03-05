@@ -154,10 +154,7 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity, ID
 
         dstManager.AddComponentData(entity, new WaterMaster
         {
-            CoolingStrength = Water_CoolingStrength,
-            CoolingStrengthFallOff = Water_CoolingStrengthFallOff,
             RefillRate = Water_RefillRate,
-            SplashRadius = Water_SplashRadius,
             CarryMultiplier = Water_CarryMultiplier
         });
 
@@ -171,9 +168,12 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity, ID
 
         dstManager.AddComponentData(entity, new BucketMaster
         {
+            CoolingStrength = Water_CoolingStrength,
+            CoolingStrengthFallOff = Water_CoolingStrengthFallOff,
             Capacity = Bucket_Capacity,
             FillRate = Bucket_FillRate,
             Size_Empty = Bucket_Size_Empty,
+            SplashRadius = Water_SplashRadius,
             Size_Full = Bucket_Size_Full
         });
 
