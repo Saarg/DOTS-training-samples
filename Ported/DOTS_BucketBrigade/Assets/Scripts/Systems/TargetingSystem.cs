@@ -29,7 +29,7 @@ public class TargetingSystem : JobComponentSystem
             
             if (math.distancesq(fromTo.Source, nearestWater) > 25.0f)
                 fromTo.Source = nearestWater;
-            if (math.distancesq(fromTo.Target, nearestFire) > 9.0f)
+            if (math.distancesq(fromTo.Target, nearestFire) > 4.0f)
                 fromTo.Target = nearestFire;
         }
     }

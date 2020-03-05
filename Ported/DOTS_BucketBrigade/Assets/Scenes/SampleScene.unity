@@ -9116,7 +9116,7 @@ PrefabInstance:
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
       propertyPath: Fire_HeatTransferRate
-      value: 0.18
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
@@ -9126,7 +9126,42 @@ PrefabInstance:
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
       propertyPath: Bot_Speed
-      value: 2
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: NbOmnibots
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: NbChains
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: Bucket_FillRate
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: Bucket_Size_Full
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: Water_CoolingStrengthFallOff
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: NbBotsPerChain
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: Water_SplashRadius
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0d2423c3e9d44b3086493883e9cc3a5, type: 3}

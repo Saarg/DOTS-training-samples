@@ -109,7 +109,7 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity, ID
     public float Bucket_Size_Full = 0.4f;
 
     [Header("Bots")]
-    [SerializeField, Range(0.1f, 2.0f), Tooltip("The speed at which the bot moves.")]
+    [SerializeField, Range(0.1f, 5.0f), Tooltip("The speed at which the bot moves.")]
     public float Bot_Speed = 0.5f;
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
