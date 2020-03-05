@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Burst;
 
 [UpdateBefore(typeof(MoveToDestinationSystem))]
 public class PickupSystem : JobComponentSystem
@@ -39,6 +40,7 @@ public class PickupSystem : JobComponentSystem
             .WithNone<Destination2D>()
             .WithNone<Carrying>()
             .WithAll<BotTag>()
+            .WithNone<MovingTowards>()
             .ForEach((Entity entity, int nativeThreadIndex, ref Role role) =>
         {
             if (role.Value == BotRole.Fill || role.Value == BotRole.Omnibot || role.Value == BotRole.Throw)
@@ -69,6 +71,12 @@ public class PickupSystem : JobComponentSystem
                     {
                         Value = pos2DFromEntity[nearestBucket].Value
                     });
+
+                    commandBuffer.AddComponent(nativeThreadIndex, entity, new MovingTowards
+                    {
+                        Entity = nearestBucket,
+                        Position = pos2DFromEntity[nearestBucket].Value
+                    });
                 }
             }
             else if (role.Value == BotRole.PassEmpty || role.Value == BotRole.PassFull)
@@ -89,6 +97,12 @@ public class PickupSystem : JobComponentSystem
                         {
                             Value = target
                         });
+
+                        commandBuffer.AddComponent(nativeThreadIndex, entity, new MovingTowards
+                        {
+                            Entity = Entity.Null,
+                            Position = target
+                        });
                     }
                 }
             }
@@ -104,36 +118,32 @@ public class PickupSystem : JobComponentSystem
             .WithNone<Carrying>()
             .WithNone<Destination2D>()
             .WithAll<BotTag>()
-            .ForEach((Entity entity, int nativeThreadIndex) =>
+            .ForEach((Entity entity, int nativeThreadIndex, ref MovingTowards movingTowards) =>
         {
-            var bucketEntity = Entity.Null;
-            // Get the bucket that is nearest the bot, should be right next
-            for (int i = 0, length = bucketEntities.Length; i < length; ++i)
+            bool closeEnough = false;
+            if (pos2DFromEntity.Exists(entity))
             {
-                if (pos2DFromEntity.Exists(bucketEntities[i]) && pos2DFromEntity.Exists(entity))
+                var distance = math.distance(movingTowards.Position, pos2DFromEntity[entity].Value);
+                if (distance < 0.5f)
                 {
-                    var bucketPos = pos2DFromEntity[bucketEntities[i]];
-                    var distance = math.distance(bucketPos.Value, pos2DFromEntity[entity].Value);
-                    if (distance < 0.5f)
-                    {
-                        bucketEntity = bucketEntities[i];
-                    }
+                    closeEnough = true;
                 }
             }
-
-            if (bucketEntity != Entity.Null && gradientStateFromEntity.Exists(bucketEntity))
+            
+            if (closeEnough && gradientStateFromEntity.Exists(movingTowards.Entity))
             {
-                var gradient = gradientStateFromEntity[bucketEntity].Value;
+                var gradient = gradientStateFromEntity[movingTowards.Entity].Value;
                 if (gradient <= 0.0f || gradient >= 1.0f)
                 {
-                    commandBuffer.AddComponent(nativeThreadIndex, bucketEntity, new Carried
+                    commandBuffer.AddComponent(nativeThreadIndex, movingTowards.Entity, new Carried
                     {
                         Value = entity
                     });
                     commandBuffer.AddComponent(nativeThreadIndex, entity, new Carrying
                     {
-                        Value = bucketEntity
+                        Value = movingTowards.Entity
                     });
+                    commandBuffer.RemoveComponent<MovingTowards>(nativeThreadIndex, entity);
                 }
             }
         }).WithReadOnly(gradientStateFromEntity)
@@ -144,6 +154,7 @@ public class PickupSystem : JobComponentSystem
             .WithAll<BotTag>()
             .WithAll<Carrying>()
             .WithNone<Destination2D>()
+            .WithNone<MovingTowards>()
             .ForEach((Entity entity, int nativeThreadIndex, ref Role role) =>
         {
             // If you are carrying a bucket, you need a destination to drop off your bucket
@@ -170,6 +181,11 @@ public class PickupSystem : JobComponentSystem
                         {
                             Value = nearestDestination
                         });
+                        commandBuffer.AddComponent(nativeThreadIndex, entity, new MovingTowards
+                        {
+                            Entity = Entity.Null,
+                            Position = nearestDestination
+                        });
                     }
                 }
             }
@@ -184,14 +200,21 @@ public class PickupSystem : JobComponentSystem
                         var currentPos = pos2DFromEntity[entity].Value;
                         var nextPos = pos2DFromEntity[next].Value;
                         var targetPos = (currentPos + nextPos) / 2.0f;
+
                         commandBuffer.AddComponent(nativeThreadIndex, entity, new Destination2D
                         {
                             Value = targetPos
+                        });
+                        commandBuffer.AddComponent(nativeThreadIndex, entity, new MovingTowards
+                        {
+                            Entity = Entity.Null,
+                            Position = targetPos
                         });
                     }
                 }
             }
         }).WithReadOnly(gradientStateFromEntity)
+          .WithReadOnly(pos2DFromEntity)
           .WithReadOnly(inlineFromEntity)
           .WithReadOnly(gridPosFromEntity)
           .WithReadOnly(carryingFromEntity)
@@ -200,10 +223,29 @@ public class PickupSystem : JobComponentSystem
         var dropBucketJobHandle = Entities
             .WithAll<BotTag>()
             .WithNone<Destination2D>()
-            .ForEach((Entity entity, int nativeThreadIndex, ref Role role) =>
+            .WithAll<Carrying>()
+            .ForEach((Entity entity, int nativeThreadIndex, ref Role role, ref MovingTowards movingTowards) =>
         {
-            // If you arrived at your destination and you are carrying a bucket, drop it
+            bool closeEnough = false;
+            if (pos2DFromEntity.Exists(entity))
+            {
+                var distance = math.distance(movingTowards.Position, pos2DFromEntity[entity].Value);
+                if (distance < 0.5f)
+                {
+                    closeEnough = true;
+                }
+            }
+
+            if (closeEnough && carryingFromEntity.Exists(entity))
+            {
+                var bucketEntity = carryingFromEntity[entity].Value;
+                commandBuffer.RemoveComponent<Carried>(nativeThreadIndex, bucketEntity);
+                commandBuffer.RemoveComponent<Carrying>(nativeThreadIndex, bucketEntity);
+                commandBuffer.RemoveComponent<MovingTowards>(nativeThreadIndex, entity);
+            }
+
         }).WithReadOnly(pos2DFromEntity)
+          .WithReadOnly(carryingFromEntity)
           .Schedule(moveBucketJobHandle);
 
         m_CommandBufferSystem.AddJobHandleForProducer(findBucketJobHandle);
@@ -211,12 +253,13 @@ public class PickupSystem : JobComponentSystem
         m_CommandBufferSystem.AddJobHandleForProducer(moveBucketJobHandle);
         m_CommandBufferSystem.AddJobHandleForProducer(dropBucketJobHandle);
 
-        var disposeHandle = bucketEntities.Dispose(pickupBucketJobHandle);
+        var disposeHandle = bucketEntities.Dispose(dropBucketJobHandle);
 
         return disposeHandle;
     }
 
-    bool FindNearestCell(Grid grid,
+    [BurstCompile]
+    static bool FindNearestCell(Grid grid,
                           Grid.Cell.ContentFlags flag,
                           ComponentDataFromEntity<Position2D> pos2DFromEntity,
                           ComponentDataFromEntity<PositionInGrid> gridPosFromEntity,
