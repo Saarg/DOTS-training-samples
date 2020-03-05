@@ -23,8 +23,11 @@ public class PickupSystem : JobComponentSystem
     {
         // Get the buckets that can be picked up
         var bucketEntities = m_BucketsAvailable.ToEntityArrayAsync(Allocator.TempJob, out var bucketEntitiesHandle);
-        var pos2DFromEntity = GetComponentDataFromEntity<Position2D>(true);
         var commandBuffer = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent();
+
+        var pos2DFromEntity = GetComponentDataFromEntity<Position2D>(true);
+        var inlineFromEntity = GetComponentDataFromEntity<InLine>(true);
+        var carryingFromEntity = GetComponentDataFromEntity<Carrying>(true);
 
         // This job gives a Destination2D to bots that do not have one yet and are able to go find a bucket
         var findBucketJobHandle = Entities
@@ -66,14 +69,66 @@ public class PickupSystem : JobComponentSystem
             else if (role.Value == BotRole.PassEmpty || role.Value == BotRole.PassFull)
             {
                 // Need to check the chain previous members to see if they have a bucket to pass further
-                // TODO
+                if (inlineFromEntity.Exists(entity))
+                {
+                    // If previous member is carrying a bucket, go towards him
+                    var previous = inlineFromEntity[entity].Previous;
+                    if (carryingFromEntity.Exists(previous))
+                    {
+                        commandBuffer.AddComponent(nativeThreadIndex, entity, new Destination2D
+                        {
+                            Value = pos2DFromEntity[previous].Value
+                        });
+                    }
+                }
             }
         }).WithReadOnly(pos2DFromEntity)
+          .WithReadOnly(inlineFromEntity)
+          .WithReadOnly(carryingFromEntity)
           .Schedule(bucketEntitiesHandle);
 
-        m_CommandBufferSystem.AddJobHandleForProducer(findBucketJobHandle);
+        // This job asks bots that are on a bucket to pick it up.
+        // It looks through all bots that will be on top of the bucket,
+        // so they arrived there (no more destination) and that are not carrying any bucket
+        var pickupBucketJobHandle = Entities
+            .WithNone<Carrying>()
+            .WithNone<Destination2D>()
+            .WithAll<BotTag>()
+            .ForEach((Entity entity, int nativeThreadIndex) =>
+        {
+            var bucketEntity = Entity.Null;
+            // Get the bucket that is nearest the bot, should be right next
+            for (int i = 0, length = bucketEntities.Length; i < length; ++i)
+            {
+                if (pos2DFromEntity.Exists(bucketEntities[i]) && pos2DFromEntity.Exists(entity))
+                {
+                    var bucketPos = pos2DFromEntity[bucketEntities[i]];
+                    var distance = math.distance(bucketPos.Value, pos2DFromEntity[entity].Value);
+                    if (distance < 0.5f)
+                    {
+                        bucketEntity = bucketEntities[i];
+                    }
+                }
+            }
 
-        var disposeHandle = bucketEntities.Dispose(findBucketJobHandle);
+            if (bucketEntity != Entity.Null)
+            {
+                commandBuffer.AddComponent(nativeThreadIndex, bucketEntity, new Carried
+                {
+                    Value = entity
+                });
+                commandBuffer.AddComponent(nativeThreadIndex, entity, new Carrying
+                {
+                    Value = bucketEntity
+                });
+            }
+        }).WithReadOnly(pos2DFromEntity)
+          .Schedule(findBucketJobHandle);
+
+        m_CommandBufferSystem.AddJobHandleForProducer(findBucketJobHandle);
+        m_CommandBufferSystem.AddJobHandleForProducer(pickupBucketJobHandle);
+
+        var disposeHandle = bucketEntities.Dispose(pickupBucketJobHandle);
 
         return disposeHandle;
     }
