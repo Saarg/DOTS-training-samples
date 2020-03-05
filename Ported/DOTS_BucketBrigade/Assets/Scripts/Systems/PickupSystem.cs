@@ -167,26 +167,21 @@ public class PickupSystem : JobComponentSystem
                     var gradient = gradientStateFromEntity[bucketEntity].Value;
                     bool inSearchOfFire = gradient >= 1.0f;
 
-                    var destinationFound = FindNearestCell(
-                        grid,
+                    var nearestDestination = TargetingSystem.FindNearestOfTag(
+                        pos2DFromEntity[entity].Value,
                         inSearchOfFire ? Grid.Cell.ContentFlags.Fire : Grid.Cell.ContentFlags.Water,
-                        pos2DFromEntity,
-                        gridPosFromEntity,
-                        entity,
-                        out var nearestDestination);
+                        grid,
+                        gameMaster);
 
-                    if (destinationFound)
+                    commandBuffer.AddComponent(nativeThreadIndex, entity, new Destination2D
                     {
-                        commandBuffer.AddComponent(nativeThreadIndex, entity, new Destination2D
-                        {
-                            Value = nearestDestination
-                        });
-                        commandBuffer.AddComponent(nativeThreadIndex, entity, new MovingTowards
-                        {
-                            Entity = Entity.Null,
-                            Position = nearestDestination
-                        });
-                    }
+                        Value = nearestDestination
+                    });
+                    commandBuffer.AddComponent(nativeThreadIndex, entity, new MovingTowards
+                    {
+                        Entity = Entity.Null,
+                        Position = nearestDestination
+                    });
                 }
             }
             else if (role.Value == BotRole.PassEmpty || role.Value == BotRole.PassFull)
@@ -216,7 +211,6 @@ public class PickupSystem : JobComponentSystem
         }).WithReadOnly(gradientStateFromEntity)
           .WithReadOnly(pos2DFromEntity)
           .WithReadOnly(inlineFromEntity)
-          .WithReadOnly(gridPosFromEntity)
           .WithReadOnly(carryingFromEntity)
           .Schedule(pickupBucketJobHandle);
 
@@ -256,43 +250,5 @@ public class PickupSystem : JobComponentSystem
         var disposeHandle = bucketEntities.Dispose(dropBucketJobHandle);
 
         return disposeHandle;
-    }
-
-    [BurstCompile]
-    static bool FindNearestCell(Grid grid,
-                          Grid.Cell.ContentFlags flag,
-                          ComponentDataFromEntity<Position2D> pos2DFromEntity,
-                          ComponentDataFromEntity<PositionInGrid> gridPosFromEntity,
-                          Entity currentBot,
-                          out float2 nearestDestination)
-    {
-        var botPos = pos2DFromEntity[currentBot].Value;
-
-        nearestDestination = float2.zero;
-        var distance = 999.0f;
-        bool destinationFound = false;
-
-        for (int i = 0; i < grid.Physical.Length; ++i)
-        {
-            var keyPair = grid.Physical[i];
-            if (keyPair.Flags == flag)
-            {
-                var gridPos2D = float2.zero; 
-                if (gridPosFromEntity.Exists(keyPair.Entity))
-                {
-                    gridPos2D = grid.ToPos2D(gridPosFromEntity[keyPair.Entity].Value);
-                }
-
-                var newDistance = math.distance(botPos, gridPos2D);
-                if (newDistance < distance)
-                {
-                    distance = newDistance;
-                    nearestDestination = gridPos2D;
-                    destinationFound = true;
-                }
-            }
-        }
-
-        return destinationFound;
     }
 }
