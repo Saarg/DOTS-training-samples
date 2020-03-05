@@ -114,16 +114,10 @@ public class ChopperSystem : JobComponentSystem
             }).Schedule(inputDeps);
 
         var handleMove = Entities
-            .WithAll<Destination2D>()
-            .ForEach((Entity entity, int entityInQueryIndex, ref Chopper c, ref Translation t, in FromTo ft, in Position2D pos) =>
+            .ForEach((Entity entity, int entityInQueryIndex, ref Chopper c, ref Translation t, ref Destination2D dest, in FromTo ft, in Position2D pos) =>
             {
                 if (!c.DropFire)
-                {
-                    ecb.SetComponent<Destination2D>(entityInQueryIndex, entity, new Destination2D
-                    {
-                        Value = c.IsToDropWaterOnFire ? ft.Target : ft.Source
-                    });
-                }
+                    dest.Value = c.IsToDropWaterOnFire ? ft.Target : ft.Source;
 
                 t.Value = new float3(pos.Value, c.VerticalPos).xzy;
             }).Schedule(handle);
