@@ -8,6 +8,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
+[UpdateBefore(typeof(MoveToDestinationSystem))]
 public class ChainPlacementSystem : SystemBase
 {
     EntityQuery m_EntityQuery;

@@ -45,7 +45,7 @@ public class SpawnSystem : JobComponentSystem
     {
         var gameMaster = GetSingleton<GameMaster>();
         var chainEntity = EntityManager.CreateEntity();
-        var chainSharedComponent = new ChainParentComponent{Chain = chainEntity};
+        var chainSharedComponent = new ChainParentComponent { Chain = chainEntity };
 
         var sourceEntity = EntityManager.CreateEntity();
         var targetEntity = EntityManager.CreateEntity();

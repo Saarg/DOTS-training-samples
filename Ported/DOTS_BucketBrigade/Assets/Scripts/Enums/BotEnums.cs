@@ -1,4 +1,8 @@
 ﻿public enum BotRole
 {
-    // TODO
+    Fill,
+    PassEmpty,
+    PassFull,
+    Throw,
+    Omnibot
 }

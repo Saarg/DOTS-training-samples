@@ -5,6 +5,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 
 [GenerateAuthoringComponent]
+[UpdateAfter(typeof(PickupSystem))]
 public class MoveToDestinationSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem m_CommandBufferSystem;
