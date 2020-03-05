@@ -131,6 +131,7 @@ public class SpreadFire : JobComponentSystem
                         ecb.RemoveComponent<PreFireTag>(entityInQueryIndex, entity);
                         ecb.AddComponent<FireTag>(entityInQueryIndex, entity);
                         ecb.AddComponent<NewFireTag>(entityInQueryIndex, entity);
+                        ecb.AddComponent<SpawnAroundSimFireTag>(entityInQueryIndex, entity);
 
                         // FIXME: remove
                         float3 pos = new float3(grid.ToPos2D(posInGrid.Value), 0).xzy;

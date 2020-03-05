@@ -119,7 +119,14 @@ public class GridUpdate : JobComponentSystem
         {
             Simulation.Capacity = Simulation.Length * 4;
         }
-
+        
+        var clearsimGridJob = new ClearSimFiresGrid
+        {
+            SimulationGrid = Simulation,
+            CommandBuffer = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent()
+        };
+        var clearSimGridJobHandle = clearsimGridJob.ScheduleSingle(this, inputDeps);
+      
         var clearGridJob = new ClearFiresGrid
         {
             Grid = Physical,
@@ -127,21 +134,15 @@ public class GridUpdate : JobComponentSystem
             AroundCells = m_AroundCells,
             CommandBuffer = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent()
         };
-        var clearGridJobHandle = clearGridJob.ScheduleSingle(this, inputDeps);
+        var clearGridJobHandle = clearGridJob.ScheduleSingle(this, clearSimGridJobHandle);
 
-        var clearsimGridJob = new ClearSimFiresGrid
-        {
-            SimulationGrid = Simulation,
-            CommandBuffer = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent()
-        };
-        var clearSimGridJobHandle = clearsimGridJob.ScheduleSingle(this, clearGridJobHandle);
         m_CommandBufferSystem.AddJobHandleForProducer(clearSimGridJobHandle);
         
         var newFireJob = new NewFireJob
         {
             Grid = Simulation
         };
-        var newFireJobHandle = newFireJob.ScheduleSingle(this, clearSimGridJobHandle);
+        var newFireJobHandle = newFireJob.ScheduleSingle(this, clearGridJobHandle);
         m_CommandBufferSystem.AddJobHandleForProducer(newFireJobHandle);
 
         var physical = Physical.AsParallelWriter();
@@ -175,8 +176,6 @@ public class GridUpdate : JobComponentSystem
         var ecb = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent();
         var fireCleanupJobHandle = Entities
             .WithAll<FireTag>()
-            .WithNone<PreFireTag>()
-            .WithNone<NewFireTag>()
             .ForEach((Entity entity, int entityInQueryIndex, in PositionInGrid pos) =>
             {
                 if (grid.Physical.TryGetValue(pos.Value, out Grid.Cell cell) && cell.Entity != entity)

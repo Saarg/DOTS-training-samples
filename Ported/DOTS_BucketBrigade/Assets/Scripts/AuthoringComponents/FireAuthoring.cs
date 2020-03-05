@@ -9,6 +9,7 @@ public class FireAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         dstManager.AddComponent<FireTag>(entity);
         dstManager.AddComponentData(entity, new PositionInGrid { Value = new int2((int)transform.position.x, (int)transform.position.z) });
         dstManager.AddComponent<NewFireTag>(entity);
+        dstManager.AddComponent<SpawnAroundSimFireTag>(entity);
         
         dstManager.AddComponentData(entity, new GradientState { Value = 1.0f });
     }

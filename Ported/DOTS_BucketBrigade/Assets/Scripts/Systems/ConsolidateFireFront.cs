@@ -81,12 +81,11 @@ public class ConsolidateFireFront : JobComponentSystem
 
                     // Remove the new-fire tag, add the fire-front tag
                     ecb.RemoveComponent<NewFireTag>(entityInQueryIndex, entity);
-                    ecb.AddComponent<SpawnAroundSimFireTag>(entityInQueryIndex, entity);
                 })
             .Schedule(removeSimFireHandle);
         
         var spawnFireHandle = Entities
-            .WithNone<ToDeleteFromGridTag>()
+            .WithNone<ToDeleteFromGridTag, PreFireTag>()
             .WithAll<SpawnAroundSimFireTag>()
             .ForEach(
                 (Entity entity, int entityInQueryIndex, in PositionInGrid posInGrid) =>
