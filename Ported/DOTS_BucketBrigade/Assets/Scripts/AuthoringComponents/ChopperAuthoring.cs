@@ -5,8 +5,9 @@ using UnityEngine;
 // Chop chop
 public class ChopperAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 {
-    public float ChopperVerticalSpeed;
-    public float ChopperHorizontalSpeed;
+    public float ChopperVerticalSpeed = 10;
+    public float ChopperHorizontalSpeed = 0.5f;
+    public bool DropFire = false;
     
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
@@ -20,6 +21,8 @@ public class ChopperAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             MaxVerticalPos = transform.position.y,
             
             State = Chopper.ActionState.Dropping,
+            
+            DropFire = DropFire,
         });
 
         dstManager.AddComponentData<Position2D>(entity, new Position2D { Value = ((float3)transform.position).xz});

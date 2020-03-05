@@ -22,5 +22,5 @@ public struct Chopper : IComponentData
     public ActionState State;
     public bool IsToDropWaterOnFire;
 
-    public float2 Destination;
+    public bool DropFire;
 }

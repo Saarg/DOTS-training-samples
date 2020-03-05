@@ -9109,6 +9109,11 @@ PrefabInstance:
       propertyPath: Fire_Flashpoint
       value: 0.345
       objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: Bot_Speed
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0d2423c3e9d44b3086493883e9cc3a5, type: 3}
 --- !u!1001 &1840734575

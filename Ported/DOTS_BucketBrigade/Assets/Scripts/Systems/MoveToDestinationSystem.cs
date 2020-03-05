@@ -17,16 +17,18 @@ public class MoveToDestinationSystem : SystemBase
         int m_ThreadIndex;
         
         public EntityCommandBuffer.Concurrent EntityCommandBuffer;
+        public float DeltaTime;
         
         public void Execute(Entity entity, int index, ref Position2D pos, ref Destination2D dest, [ReadOnly]ref MovementSpeed speed)
         {
+            var dist = speed.Value * DeltaTime;
             var diff = dest.Value - pos.Value;
             var len = math.length(diff);
             var invLen = math.rcp(len);
             
-            pos.Value += diff * invLen * math.min(speed.Value, len);
+            pos.Value += diff * invLen * math.min(dist, len);
             
-            if (speed.Value >= len)
+            if (dist >= len)
             {
                 pos.Value = dest.Value;
                 EntityCommandBuffer.RemoveComponent<Destination2D>(m_ThreadIndex, entity);
@@ -38,7 +40,8 @@ public class MoveToDestinationSystem : SystemBase
     {
         var job = new MoveToDestinationJob
         {
-            EntityCommandBuffer = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent()
+            EntityCommandBuffer = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent(),
+            DeltaTime = Time.DeltaTime,
         };
 
         Dependency = job.Schedule(this, Dependency);

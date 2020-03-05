@@ -11,6 +11,17 @@ public class ChopperSystem : JobComponentSystem
 {
     private BeginSimulationEntityCommandBufferSystem m_CommandBufferSystem;
 
+    private static uint InvwkRnd(ref uint seed)
+    {
+        seed += ((seed * seed) | 5u);
+        return seed;
+    }
+
+    private static float InvwkRndf(ref uint seed)
+    {
+        return math.asfloat((InvwkRnd(ref seed) >> 9) | 0x3f800000) - 1.0f;
+    }
+
     protected override void OnCreate()
     {
         m_CommandBufferSystem = World
@@ -23,12 +34,18 @@ public class ChopperSystem : JobComponentSystem
         EntityCommandBuffer.Concurrent ecb = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent();
 
         var gameMaster = GetSingleton<GameMaster>();
+        var grid = GetSingleton<Grid>();
         float dt = Time.DeltaTime;
+        float et = (float)Time.ElapsedTime;
         
         var handle = Entities
             .WithNone<Destination2D>()
             .ForEach((Entity entity, int entityInQueryIndex, ref Chopper c, ref Translation t, in FromTo ft, in Position2D pos) =>
             {
+                uint seed = math.asuint(et);
+                InvwkRnd(ref seed);
+                seed *= (1 + (uint)entity.Index);
+
                 switch (c.State)
                 {
                     case Chopper.ActionState.MovingUp:
@@ -36,9 +53,15 @@ public class ChopperSystem : JobComponentSystem
                         c.VerticalPos = math.min(c.MaxVerticalPos, c.VerticalPos + c.VerticalSpeed * dt);
                         if (c.VerticalPos >= c.MaxVerticalPos)
                         {
+                            float2 dest;
+                            if (c.DropFire)
+                                dest = (new float2(InvwkRndf(ref seed), InvwkRndf(ref seed)) * 2 - 1) * 90;
+                            else
+                                dest = c.IsToDropWaterOnFire ? ft.Target : ft.Source;
+
                             ecb.AddComponent<Destination2D>(entityInQueryIndex, entity, new Destination2D
                             {
-                                Value = c.IsToDropWaterOnFire ? ft.Target : ft.Source
+                                Value = dest
                             });
                             c.State = Chopper.ActionState.FlyingToDestination;
                         }
@@ -62,14 +85,25 @@ public class ChopperSystem : JobComponentSystem
                     {
                         c.State = Chopper.ActionState.MovingUp;
 
-                        if (c.IsToDropWaterOnFire)
+                        if (c.DropFire)
                         {
-                            var bucket = ecb.Instantiate(entityInQueryIndex, gameMaster.BucketPrefab);
-                            ecb.SetComponent(entityInQueryIndex, bucket, new GradientState { Value = 1.0f });
-                            ecb.SetComponent(entityInQueryIndex, bucket, new Position2D { Value = pos.Value });
+                            var fire = ecb.Instantiate(entityInQueryIndex, gameMaster.FirePrefab);
+                            ecb.SetComponent(entityInQueryIndex, fire, new GradientState {Value = 1.0f});
+                            ecb.SetComponent(entityInQueryIndex, fire, new PositionInGrid {Value = grid.ToGridPos(pos)});
                         }
-                        
-                        c.IsToDropWaterOnFire = !c.IsToDropWaterOnFire;
+                        else
+                        {
+                            if (c.IsToDropWaterOnFire)
+                            {
+                                var bucket = ecb.Instantiate(entityInQueryIndex, gameMaster.BucketPrefab);
+                                ecb.SetComponent(entityInQueryIndex, bucket, new GradientState {Value = 1.0f});
+                                ecb.SetComponent(entityInQueryIndex, bucket, new Position2D {Value = pos.Value});
+                                ecb.AddComponent<DestroyBucketWhenEmptyTag>(entityInQueryIndex, bucket);
+                            }
+
+                            c.IsToDropWaterOnFire = !c.IsToDropWaterOnFire;
+                        }
+
                         break;
                     }
                 }
