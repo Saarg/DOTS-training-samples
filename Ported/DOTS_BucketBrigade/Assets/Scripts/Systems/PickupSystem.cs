@@ -234,7 +234,7 @@ public class PickupSystem : JobComponentSystem
             {
                 var bucketEntity = carryingFromEntity[entity].Value;
                 commandBuffer.RemoveComponent<Carried>(nativeThreadIndex, bucketEntity);
-                commandBuffer.RemoveComponent<Carrying>(nativeThreadIndex, bucketEntity);
+                commandBuffer.RemoveComponent<Carrying>(nativeThreadIndex, entity);
                 commandBuffer.RemoveComponent<MovingTowards>(nativeThreadIndex, entity);
             }
 
