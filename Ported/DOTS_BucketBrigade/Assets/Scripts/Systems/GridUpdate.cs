@@ -164,8 +164,11 @@ public class GridUpdate : JobComponentSystem
 
     protected override void OnDestroy()
     {
-        Physical.Dispose();
-        Simulation.Dispose();
+        if (Physical.IsCreated)
+            Physical.Dispose();
+        
+        if (Simulation.IsCreated)
+            Simulation.Dispose();
         m_AroundCells.Dispose();
     }
 }

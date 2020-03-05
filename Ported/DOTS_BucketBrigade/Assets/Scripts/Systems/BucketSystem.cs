@@ -5,6 +5,7 @@ using Unity.Transforms;
 
 namespace Systems
 {
+    [UpdateAfter(typeof(MoveToDestinationSystem))]
     public class BucketSystem : SystemBase
     {
         protected override void OnCreate()
@@ -20,8 +21,7 @@ namespace Systems
             var bucketSingleton = GetSingleton<BucketMaster>();
             Dependency = Entities.WithNone<Carried>().WithAll<BucketTag>()
                 .ForEach((ref GradientState gradientState, ref NonUniformScale scale,
-                in Position2D position, 
-                in Capacity capacity) =>
+                in Position2D position) =>
             {
                 switch (grid.Physical[grid.ToGridPos(position)].Flags)
                 {
@@ -29,7 +29,7 @@ namespace Systems
                         gradientState.Value = 0;
                         break;
                     case Grid.Cell.ContentFlags.Water:
-                        gradientState.Value = math.min(1.0f, gradientState.Value + bucketSingleton.FillRate * deltaTime / capacity.Value);
+                        gradientState.Value = math.min(1.0f, gradientState.Value + bucketSingleton.FillRate * deltaTime / bucketSingleton.Capacity);
                         break;
                     case Grid.Cell.ContentFlags.Nothing:
                         break;
@@ -37,7 +37,7 @@ namespace Systems
                         throw new NotImplementedException();
                 }
                 
-                scale.Value = new float3(math.max(0.1f, gradientState.Value * 0.5f));
+                scale.Value = new float3(math.lerp(bucketSingleton.Size_Empty, bucketSingleton.Size_Full, gradientState.Value));
             }).Schedule(Dependency);
 
             var position2DFromEntity = GetComponentDataFromEntity<Position2D>();
@@ -51,6 +51,8 @@ namespace Systems
 
                 bucketPos.Value = botPos.Value;
                 translation.Value.y = scaleFromEntity[carried.Value].Value.y + scaleFromEntity[entity].Value.y * 0.5f;
+
+                position2DFromEntity[entity] = bucketPos;
             }).Schedule(Dependency);
             
             Dependency = Entities.WithAll<BucketTag>().WithNone<Carried>().ForEach((Entity entity, ref Translation translation, 
