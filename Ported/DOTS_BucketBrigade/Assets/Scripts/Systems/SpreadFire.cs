@@ -103,6 +103,19 @@ public class SpreadFire : JobComponentSystem
             .WithNativeDisableContainerSafetyRestriction(gradientStateData)
             .Schedule(inputDeps);
         
+        EntityCommandBuffer.Concurrent removeEcb = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent();
+        var removeHandle = Entities
+            .WithNone<PreFireTag, MaxOutFireTag>()
+            .ForEach((Entity entity, int entityInQueryIndex, in GradientState state) =>
+            {
+                // dead fire, remove fire
+                if (state.Value < fireMaster.Flashpoint)
+                {
+                    removeEcb.AddComponent<ToDeleteFromGridTag>(entityInQueryIndex, entity);
+                }
+            })
+            .Schedule(simFireHandle);
+        
         var spreadHandle = Entities
             .WithAll<PreFireTag>()
             .ForEach((Entity entity, int entityInQueryIndex, in GradientState state, in PositionInGrid posInGrid) =>
@@ -126,9 +139,9 @@ public class SpreadFire : JobComponentSystem
                 })
             .Schedule(simFireHandle);
 
-        m_CommandBufferSystem.AddJobHandleForProducer(spreadHandle);
+        m_CommandBufferSystem.AddJobHandleForProducer(JobHandle.CombineDependencies(spreadHandle, removeHandle));
 
-        return spreadHandle;
+        return JobHandle.CombineDependencies(spreadHandle, removeHandle);
     }
 
     protected override void OnDestroy()
