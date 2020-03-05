@@ -12,7 +12,7 @@ public class ClickableFloorToGridSystem : SystemBase
         
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-        if (!Input.GetMouseButtonDown(0))
+        if (!Input.GetMouseButton(1) && !Input.GetMouseButtonDown(0))
             return;
         var endSim = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         var commandBuffer = endSim.CreateCommandBuffer();
