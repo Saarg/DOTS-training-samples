@@ -15,7 +15,7 @@ public class ChainPlacementSystem : SystemBase
     private EndSimulationEntityCommandBufferSystem m_CommandBufferSystem;
 
     [BurstCompile]
-    struct ChainBotPlacementJob : IJobForEachWithEntity<InLine, Position2D>
+    struct ChainBotPlacementJob : IJobForEachWithEntity<InLine, Position2D, Role>
     {
         [NativeSetThreadIndex]
         int m_ThreadIndex;
@@ -24,9 +24,9 @@ public class ChainPlacementSystem : SystemBase
         public float2 Source;
         public float2 Target;
         
-        public void Execute(Entity entity, int index, [ReadOnly] ref InLine inLine, [ReadOnly] ref Position2D pos)
+        public void Execute(Entity entity, int index, [ReadOnly] ref InLine inLine, [ReadOnly] ref Position2D pos, [ReadOnly] ref Role role)
         {
-            var dest = GetChainPosition(inLine.Progress);
+            var dest = GetChainPosition(inLine.Progress, role.Value);
 
             var same = pos.Value == dest;
             if (!same.x || !same.y)
@@ -35,18 +35,43 @@ public class ChainPlacementSystem : SystemBase
             }
         }
         
-        float2 GetChainPosition(float progress)
+        float2 GetChainPosition(float progress, BotRole role)
         {
+            switch (role)
+            {
+                case BotRole.Throw:
+                    return Target;
+                case BotRole.Fill:
+                    return Source;
+                default:
+                    break;
+            }
+
+            progress *= 2;
+            if(progress > 1.0f)
+                progress -= 1;
+            
             var curveOffset = Mathf.Sin(progress * Mathf.PI) * 1f;
             
-            return new float2(math.lerp(Source.x, Target.x, curveOffset), math.lerp(Source.y, Target.y, curveOffset));
+            var diff = Source - Target;
+            if (role == BotRole.PassEmpty)
+                diff = Target - Source;
+            diff = math.normalizesafe(diff);
+            var perpendicular = new float2(diff.y, -diff.x);
+
+            var source = role == BotRole.PassFull ?  Source : Target;
+            var target = role == BotRole.PassFull ?  Target : Source;
+            var newPosition = new float2(math.lerp(source.x, target.x, progress),
+                                         math.lerp(source.y, target.y, progress));
+            newPosition += perpendicular * curveOffset;
+            return newPosition;
         }
     }
     
     protected override void OnCreate()
     {
         m_EntityQuery = GetEntityQuery(ComponentType.ReadOnly<InLine>(), ComponentType.ReadOnly<Position2D>()
-            , ComponentType.ReadOnly<ChainParentComponent>(), ComponentType.Exclude<Destination2D>());
+            , ComponentType.ReadOnly<ChainParentComponent>(), ComponentType.Exclude<Destination2D>(), ComponentType.ReadOnly<Role>());
         m_CommandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
     }
     
