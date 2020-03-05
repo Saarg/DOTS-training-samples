@@ -81,7 +81,6 @@ public class ConsolidateFireFront : JobComponentSystem
 
                     // Remove the new-fire tag, add the fire-front tag
                     ecb.RemoveComponent<NewFireTag>(entityInQueryIndex, entity);
-                    ecb.RemoveComponent<FireFrontTag>(entityInQueryIndex, entity);
 
                     // Spawn pre-fires around the fire
                     for (var i = 0; i < aroundCells.Length; ++i)
