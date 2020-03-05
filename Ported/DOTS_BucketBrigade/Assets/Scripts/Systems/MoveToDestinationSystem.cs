@@ -28,6 +28,7 @@ public class MoveToDestinationSystem : SystemBase
             
             if (speed.Value >= len)
             {
+                pos.Value = dest.Value;
                 EntityCommandBuffer.RemoveComponent<Destination2D>(m_ThreadIndex, entity);
             }
         }
