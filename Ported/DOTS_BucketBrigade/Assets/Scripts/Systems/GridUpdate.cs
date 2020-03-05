@@ -33,6 +33,7 @@ public class GridUpdate : JobComponentSystem
                 if (Grid.TryGetValue(currentPos, out global::Grid.Cell cell) && cell.Flags == global::Grid.Cell.ContentFlags.Fire)
                 {
                     CommandBuffer.AddComponent<FireFrontTag>(ThreadIndex, cell.Entity);
+                    CommandBuffer.AddComponent<SpawnAroundSimFireTag>(ThreadIndex, cell.Entity);
                 }
             }
 
@@ -161,7 +162,30 @@ public class GridUpdate : JobComponentSystem
             }).Schedule(newFireJobHandle);
         m_CommandBufferSystem.AddJobHandleForProducer(waterUpdateJobHandle);
 
-        return waterUpdateJobHandle;
+        var ecbMaxOutCleanup = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent();
+        var maxOutFireCleanupJobHandle = Entities
+            .WithAll<MaxOutFireTag>()
+            .ForEach((Entity entity, int entityInQueryIndex, in GradientState state) =>
+            {
+                if (state.Value < 1.0f)
+                    ecbMaxOutCleanup.RemoveComponent<MaxOutFireTag>(entityInQueryIndex, entity);
+            }).Schedule(newFireJobHandle);
+        m_CommandBufferSystem.AddJobHandleForProducer(maxOutFireCleanupJobHandle);
+
+        var ecb = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent();
+        var fireCleanupJobHandle = Entities
+            .WithAll<FireTag>()
+            .WithNone<PreFireTag>()
+            .WithNone<NewFireTag>()
+            .ForEach((Entity entity, int entityInQueryIndex, in PositionInGrid pos) =>
+            {
+                if (grid.Physical.TryGetValue(pos.Value, out Grid.Cell cell) && cell.Entity != entity)
+                    ecb.DestroyEntity(entityInQueryIndex, entity);
+            }).Schedule(maxOutFireCleanupJobHandle);
+        
+        m_CommandBufferSystem.AddJobHandleForProducer(fireCleanupJobHandle);
+
+        return JobHandle.CombineDependencies(waterUpdateJobHandle, fireCleanupJobHandle, maxOutFireCleanupJobHandle);
     }
 
     protected override void OnDestroy()

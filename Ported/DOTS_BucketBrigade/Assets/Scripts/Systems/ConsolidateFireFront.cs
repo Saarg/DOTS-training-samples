@@ -64,7 +64,7 @@ public class ConsolidateFireFront : JobComponentSystem
             .Schedule(inputDeps);
         
         // Spawn Fires
-        var spawnFireHandle = Entities
+        var addFireToGridHandle = Entities
             .WithNone<ToDeleteFromGridTag>()
             .WithAll<NewFireTag>()
             .ForEach(
@@ -81,7 +81,22 @@ public class ConsolidateFireFront : JobComponentSystem
 
                     // Remove the new-fire tag, add the fire-front tag
                     ecb.RemoveComponent<NewFireTag>(entityInQueryIndex, entity);
+                    ecb.AddComponent<SpawnAroundSimFireTag>(entityInQueryIndex, entity);
+                })
+            .Schedule(removeSimFireHandle);
+        
+        var spawnFireHandle = Entities
+            .WithNone<ToDeleteFromGridTag>()
+            .WithAll<SpawnAroundSimFireTag>()
+            .ForEach(
+                (Entity entity, int entityInQueryIndex, in PositionInGrid posInGrid) =>
+                {
+                    if (grid.Physical.TryGetValue(posInGrid.Value, out Grid.Cell cell) && cell.Entity != entity)
+                        return;
+                    // Remove the new-fire tag, add the fire-front tag
+                    ecb.RemoveComponent<SpawnAroundSimFireTag>(entityInQueryIndex, entity);
 
+                    bool hasAroundCells = false;
                     // Spawn pre-fires around the fire
                     for (var i = 0; i < aroundCells.Length; ++i)
                     {
@@ -92,6 +107,7 @@ public class ConsolidateFireFront : JobComponentSystem
                         
                         if (simParallelGrid.TryAdd(currentPos, 0))
                         {
+                            hasAroundCells = true;
                             var preFireEntity = ecb.Instantiate(entityInQueryIndex, gameMaster.FirePrefab);
                             ecb.AddComponent<PreFireTag>(entityInQueryIndex, preFireEntity);
                             ecb.RemoveComponent<NewFireTag>(entityInQueryIndex, preFireEntity);
@@ -104,9 +120,11 @@ public class ConsolidateFireFront : JobComponentSystem
                             ecb.SetComponent<Translation>(entityInQueryIndex, preFireEntity, new Translation(){ Value = pos});
                         }
                     }
+                    if (hasAroundCells)
+                        ecb.AddComponent<FireFrontTag>(entityInQueryIndex, entity);
                 })
             .WithReadOnly(aroundCells)
-            .Schedule(removeSimFireHandle);
+            .Schedule(addFireToGridHandle);
         
         // Remove the FireFrontTag of fires that aren't in the front of the fire
         var removeFireFrontHandle = Entities

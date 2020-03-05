@@ -6,6 +6,7 @@ using Unity.Transforms;
 namespace Systems
 {
     [UpdateAfter(typeof(MoveToDestinationSystem))]
+    [UpdateAfter(typeof(SpreadFire))]
     public class BucketSystem : SystemBase
     {
         private EntityCommandBufferSystem m_CommandBufferSystem;
@@ -52,12 +53,6 @@ namespace Systems
                                         if (cell.Flags == Grid.Cell.ContentFlags.Fire)
                                         {
                                             var fireGradient = gradientFromEntity[cell.Entity];
-
-                                            if (fireGradient.Value >= 1.0f)
-                                            {
-                                                ecb.RemoveComponent<MaxOutFireTag>(nativeThreadIndex, cell.Entity);
-                                                ecb.AddComponent<FireFrontTag>(nativeThreadIndex, cell.Entity);
-                                            }
 
                                             fireGradient.Value = 0.0f;
                                                 // gradientState.Value *

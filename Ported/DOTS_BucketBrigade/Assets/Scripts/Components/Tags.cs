@@ -1,6 +1,9 @@
 ﻿using Unity.Entities;
 
 public struct FireTag : IComponentData { }
+
+public struct SpawnAroundSimFireTag : IComponentData { }
+
 public struct WaterTag : IComponentData { }
 public struct BucketTag : IComponentData { }
 public struct DestroyBucketWhenEmptyTag : IComponentData { }
