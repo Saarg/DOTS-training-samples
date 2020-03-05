@@ -90,6 +90,7 @@ public class ChopperSystem : JobComponentSystem
                             var fire = ecb.Instantiate(entityInQueryIndex, gameMaster.FirePrefab);
                             ecb.SetComponent(entityInQueryIndex, fire, new GradientState {Value = 1.0f});
                             ecb.SetComponent(entityInQueryIndex, fire, new PositionInGrid {Value = grid.ToGridPos(pos)});
+                            ecb.SetComponent(entityInQueryIndex, fire, new Translation {Value = new float3(grid.ToPos2D(grid.ToGridPos(pos)), 0).xzy});
                         }
                         else
                         {
