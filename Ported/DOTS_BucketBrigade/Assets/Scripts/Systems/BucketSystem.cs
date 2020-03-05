@@ -112,6 +112,14 @@ namespace Systems
                 pos.Value = gridPos;
                 translation.Value.y = scale.Value.y * 0.5f;
             }).Schedule(Dependency);
+            
+            Dependency = Entities.WithAll<DestroyBucketWhenEmptyTag>()
+                .ForEach((Entity entity, int entityInQueryIndex, in GradientState state) =>
+                {
+                    if (state.Value <= 0)
+                        ecb.DestroyEntity(entityInQueryIndex, entity);
+                }).Schedule(Dependency);
+            m_CommandBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }

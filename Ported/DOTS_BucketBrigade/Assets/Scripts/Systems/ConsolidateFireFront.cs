@@ -101,6 +101,9 @@ public class ConsolidateFireFront : JobComponentSystem
                     {
                         var currentPos = aroundCells[i] + posInGrid.Value;
 
+                        if (math.any(currentPos > 100))
+                            continue;
+
                         if (grid.Physical.ContainsKey(currentPos))
                             continue;
                         

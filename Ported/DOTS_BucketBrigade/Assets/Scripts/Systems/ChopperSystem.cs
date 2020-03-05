@@ -55,7 +55,7 @@ public class ChopperSystem : JobComponentSystem
                         {
                             float2 dest;
                             if (c.DropFire)
-                                dest = (new float2(InvwkRndf(ref seed), InvwkRndf(ref seed)) * 2 - 1) * 90;
+                                dest = (new float2(InvwkRndf(ref seed), InvwkRndf(ref seed)) * 2 - 1) * 50;
                             else
                                 dest = c.IsToDropWaterOnFire ? ft.Target : ft.Source;
 
@@ -85,7 +85,7 @@ public class ChopperSystem : JobComponentSystem
                     {
                         c.State = Chopper.ActionState.MovingUp;
 
-                        if (c.DropFire)
+                        if (c.DropFire && !(grid.Physical.ContainsKey(grid.ToGridPos(pos))))
                         {
                             var fire = ecb.Instantiate(entityInQueryIndex, gameMaster.FirePrefab);
                             ecb.SetComponent(entityInQueryIndex, fire, new GradientState {Value = 1.0f});
@@ -94,7 +94,7 @@ public class ChopperSystem : JobComponentSystem
                         }
                         else
                         {
-                            if (c.IsToDropWaterOnFire)
+                            if (c.IsToDropWaterOnFire && (grid.Physical.TryGetValue(grid.ToGridPos(pos), out Grid.Cell cell)) && cell.Flags == Grid.Cell.ContentFlags.Fire)
                             {
                                 var bucket = ecb.Instantiate(entityInQueryIndex, gameMaster.BucketPrefab);
                                 ecb.SetComponent(entityInQueryIndex, bucket, new GradientState {Value = 1.0f});
@@ -117,6 +117,14 @@ public class ChopperSystem : JobComponentSystem
             .WithAll<Destination2D>()
             .ForEach((Entity entity, int entityInQueryIndex, ref Chopper c, ref Translation t, in FromTo ft, in Position2D pos) =>
             {
+                if (!c.DropFire)
+                {
+                    ecb.SetComponent<Destination2D>(entityInQueryIndex, entity, new Destination2D
+                    {
+                        Value = c.IsToDropWaterOnFire ? ft.Target : ft.Source
+                    });
+                }
+
                 t.Value = new float3(pos.Value, c.VerticalPos).xzy;
             }).Schedule(handle);
 
