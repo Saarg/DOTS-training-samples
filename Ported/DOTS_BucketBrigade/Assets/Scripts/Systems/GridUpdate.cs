@@ -141,6 +141,7 @@ public class GridUpdate : JobComponentSystem
             Grid = Simulation
         };
         var newFireJobHandle = newFireJob.ScheduleSingle(this, clearSimGridJobHandle);
+        m_CommandBufferSystem.AddJobHandleForProducer(newFireJobHandle);
 
         var physical = Physical.AsParallelWriter();
         var waterUpdateJobHandle = Entities.WithChangeFilter<WaterTag>().WithAll<WaterTag>()
@@ -158,6 +159,7 @@ public class GridUpdate : JobComponentSystem
                     }
                 }
             }).Schedule(newFireJobHandle);
+        m_CommandBufferSystem.AddJobHandleForProducer(waterUpdateJobHandle);
 
         return waterUpdateJobHandle;
     }
