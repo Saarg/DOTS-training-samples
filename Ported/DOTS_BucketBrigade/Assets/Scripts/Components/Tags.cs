@@ -13,4 +13,5 @@ public struct PreFireTag : IComponentData { }
 public struct NewFireTag : IComponentData { }
 public struct MaxOutFireTag : IComponentData { }
 public struct ToDeleteFromGridTag : IComponentData { }
+public struct DelayedDeleteTag : IComponentData { }
 public struct SpawnPrefabsTag : IComponentData { }

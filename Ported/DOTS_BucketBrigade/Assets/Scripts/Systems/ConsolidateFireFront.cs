@@ -75,7 +75,7 @@ public class ConsolidateFireFront : JobComponentSystem
                         new Grid.Cell {Entity = entity, Flags = Grid.Cell.ContentFlags.Fire}))
                     {
                         // There's already something ! (we cannot use ToDeleteFromGrid as the grid already has something)
-                        ecb.DestroyEntity(entityInQueryIndex, entity);
+                        ecb.AddComponent<DelayedDeleteTag>(entityInQueryIndex, entity);
                         return;
                     }
 

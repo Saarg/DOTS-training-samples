@@ -184,7 +184,15 @@ public class GridUpdate : JobComponentSystem
         
         m_CommandBufferSystem.AddJobHandleForProducer(fireCleanupJobHandle);
 
-        return JobHandle.CombineDependencies(waterUpdateJobHandle, fireCleanupJobHandle, maxOutFireCleanupJobHandle);
+        var cleanupJobHandle = Entities
+            .WithAll<DelayedDeleteTag>()
+            .ForEach((Entity entity, int entityInQueryIndex) =>
+            {
+                ecb.DestroyEntity(entityInQueryIndex, entity);
+            }).Schedule(fireCleanupJobHandle);
+        
+        m_CommandBufferSystem.AddJobHandleForProducer(cleanupJobHandle);
+        return JobHandle.CombineDependencies(waterUpdateJobHandle, fireCleanupJobHandle, cleanupJobHandle);
     }
 
     protected override void OnDestroy()
