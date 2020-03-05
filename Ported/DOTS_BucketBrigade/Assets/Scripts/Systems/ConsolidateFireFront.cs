@@ -8,23 +8,25 @@ using Unity.Transforms;
 //[UpdateAfter()]
 public class ConsolidateFireFront : JobComponentSystem
 {
-    private static readonly NativeArray<int2> m_AroundCells = new NativeArray<int2>(new int2[]
-    {
-        new int2(-1, -1),
-        new int2(-1, 0),
-        new int2(-1, 1),
-        new int2(0, -1),
-        // new int2(0, 0),
-        new int2(0, 1),
-        new int2(1, -1),
-        new int2(1, 0),
-        new int2(1, 1),
-    }, Allocator.Persistent);
+    private static NativeArray<int2> m_AroundCells;
     
     private BeginSimulationEntityCommandBufferSystem m_CommandBufferSystem;
     
     protected override void OnCreate()
     {
+        m_AroundCells = new NativeArray<int2>(new int2[]
+        {
+            new int2(-1, -1),
+            new int2(-1, 0),
+            new int2(-1, 1),
+            new int2(0, -1),
+            // new int2(0, 0),
+            new int2(0, 1),
+            new int2(1, -1),
+            new int2(1, 0),
+            new int2(1, 1),
+        }, Allocator.Persistent);
+        
         m_CommandBufferSystem = World
             .DefaultGameObjectInjectionWorld
             .GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
@@ -130,5 +132,10 @@ public class ConsolidateFireFront : JobComponentSystem
         m_CommandBufferSystem.AddJobHandleForProducer(removeFireFrontHandle);
         
         return removeFireFrontHandle;
+    }
+
+    protected override void OnDestroy()
+    {
+        m_AroundCells.Dispose();
     }
 }

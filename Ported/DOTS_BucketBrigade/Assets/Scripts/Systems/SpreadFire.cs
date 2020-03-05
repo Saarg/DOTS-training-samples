@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEditor;
 
 [UpdateAfter(typeof(ConsolidateFireFront))] 
 public class SpreadFire : JobComponentSystem
@@ -11,18 +12,7 @@ public class SpreadFire : JobComponentSystem
     private BeginSimulationEntityCommandBufferSystem m_CommandBufferSystem;
     
     // FIXME(tim): should account for grid radius
-    private static readonly NativeArray<int2> m_AroundCells = new NativeArray<int2>(new int2[]
-    {
-        new int2(-1, -1),
-        new int2(-1, 0),
-        new int2(-1, 1),
-        new int2(0, -1),
-        // new int2(0, 0),
-        new int2(0, 1),
-        new int2(1, -1),
-        new int2(1, 0),
-        new int2(1, 1),
-    }, Allocator.Persistent);
+    private static NativeArray<int2> m_AroundCells;
 
     private static uint InvwkRnd(ref uint seed)
     {
@@ -37,6 +27,19 @@ public class SpreadFire : JobComponentSystem
     
     protected override void OnCreate()
     {
+        m_AroundCells = new NativeArray<int2>(new int2[]
+        {
+            new int2(-1, -1),
+            new int2(-1, 0),
+            new int2(-1, 1),
+            new int2(0, -1),
+            // new int2(0, 0),
+            new int2(0, 1),
+            new int2(1, -1),
+            new int2(1, 0),
+            new int2(1, 1),
+        }, Allocator.Persistent);
+        
         m_CommandBufferSystem = World
             .DefaultGameObjectInjectionWorld
             .GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
@@ -126,5 +129,10 @@ public class SpreadFire : JobComponentSystem
         m_CommandBufferSystem.AddJobHandleForProducer(spreadHandle);
 
         return spreadHandle;
+    }
+
+    protected override void OnDestroy()
+    {
+        m_AroundCells.Dispose();
     }
 }

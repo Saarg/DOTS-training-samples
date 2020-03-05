@@ -7,5 +7,7 @@ public class BucketAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     {
         dstManager.AddComponent<BucketTag>(entity);
         dstManager.AddComponent<Position2D>(entity);
+        dstManager.AddComponent<GradientState>(entity);
+        dstManager.AddComponentData(entity, new Capacity{ Value = 1.0f });
     }
 }

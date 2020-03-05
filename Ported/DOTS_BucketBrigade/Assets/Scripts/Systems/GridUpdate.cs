@@ -8,18 +8,7 @@ using Unity.Mathematics;
 [UpdateInGroup(typeof(InitializationSystemGroup))]
 public class GridUpdate : JobComponentSystem
 {
-    private static readonly NativeArray<int2> m_AroundCells = new NativeArray<int2>(new int2[]
-    {
-        new int2(-1, -1),
-        new int2(-1, 0),
-        new int2(-1, 1),
-        new int2(0, -1),
-        // new int2(0, 0),
-        new int2(0, 1),
-        new int2(1, -1),
-        new int2(1, 0),
-        new int2(1, 1),
-    }, Allocator.Persistent);
+    private static NativeArray<int2> m_AroundCells;
     private EntityCommandBufferSystem m_CommandBufferSystem;
     
     // Downgrade a fire to a sim-fire
@@ -87,9 +76,25 @@ public class GridUpdate : JobComponentSystem
             Grid.Remove(positionInGrid.Value);
         }
     }
-
+    
+    public UnsafeHashMap<int2, Grid.Cell> Physical;
+    public UnsafeHashMap<int2, int /*<unused>*/> Simulation;
+    
     protected override void OnCreate()
     {
+        m_AroundCells = new NativeArray<int2>(new int2[]
+        {
+            new int2(-1, -1),
+            new int2(-1, 0),
+            new int2(-1, 1),
+            new int2(0, -1),
+            // new int2(0, 0),
+            new int2(0, 1),
+            new int2(1, -1),
+            new int2(1, 0),
+            new int2(1, 1),
+        }, Allocator.Persistent);
+        
         m_CommandBufferSystem = World.GetOrCreateSystem<EndInitializationEntityCommandBufferSystem>();
         RequireSingletonForUpdate<Grid>();
     }
@@ -97,22 +102,27 @@ public class GridUpdate : JobComponentSystem
     protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
         var grid = GetSingleton<Grid>();
-
-        // Update the capacities if necessary
-        if (grid.Physical.Capacity < grid.Physical.Length + grid.Simulation.Length)
+        if (!Physical.IsCreated || !Simulation.IsCreated)
         {
-            grid.Physical.Capacity = (grid.Physical.Length + grid.Simulation.Length) * 2;
+            Physical = grid.Physical;
+            Simulation = grid.Simulation;
         }
 
-        if (grid.Simulation.Capacity < grid.Simulation.Length * 2)
+        // Update the capacities if necessary 
+        if (Physical.Capacity < Physical.Length + Simulation.Length)
         {
-            grid.Simulation.Capacity = grid.Simulation.Length * 4;
+            Physical.Capacity = (Physical.Length + Simulation.Length) * 2;
+        }
+
+        if (Simulation.Capacity < Simulation.Length * 2)
+        {
+            Simulation.Capacity = Simulation.Length * 4;
         }
 
         var clearGridJob = new ClearFiresGrid
         {
-            Grid = grid.Physical,
-            SimulationGrid = grid.Simulation,
+            Grid = Physical,
+            SimulationGrid = Simulation,
             AroundCells = m_AroundCells,
             CommandBuffer = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent()
         };
@@ -120,7 +130,7 @@ public class GridUpdate : JobComponentSystem
 
         var clearsimGridJob = new ClearSimFiresGrid
         {
-            SimulationGrid = grid.Simulation,
+            SimulationGrid = Simulation,
             CommandBuffer = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent()
         };
         var clearSimGridJobHandle = clearsimGridJob.ScheduleSingle(this, clearGridJobHandle);
@@ -128,11 +138,11 @@ public class GridUpdate : JobComponentSystem
         
         var newFireJob = new NewFireJob
         {
-            Grid = grid.Simulation
+            Grid = Simulation
         };
         var newFireJobHandle = newFireJob.ScheduleSingle(this, clearSimGridJobHandle);
 
-        var physical = grid.Physical.AsParallelWriter();
+        var physical = Physical.AsParallelWriter();
         var waterUpdateJobHandle = Entities.WithChangeFilter<WaterTag>().WithAll<WaterTag>()
             .ForEach((Entity entity, in Position2D position2D, in Capacity capacity) =>
             {
@@ -154,9 +164,8 @@ public class GridUpdate : JobComponentSystem
 
     protected override void OnDestroy()
     {
-        var grid = GetSingleton<Grid>();
-
-        grid.Physical.Dispose();
-        grid.Simulation.Dispose();
+        Physical.Dispose();
+        Simulation.Dispose();
+        m_AroundCells.Dispose();
     }
 }
