@@ -58,26 +58,9 @@ public class SpawnSystem : JobComponentSystem
 
         var randomSeed = new Random((uint)System.DateTime.Now.Ticks);
 
-        var sourceEntity = EntityManager.CreateEntity();
-        EntityManager.AddComponentData(sourceEntity, new PositionInGrid
-        {
-            Value = randomSeed.NextInt2(m_GameMaster.NbCols)
-        });
-
-        var targetEntity = EntityManager.CreateEntity();
-        EntityManager.AddComponentData(targetEntity, new PositionInGrid
-        {
-            Value = randomSeed.NextInt2(m_GameMaster.NbCols)
-        });
-
-        EntityManager.AddComponentData(chainEntity, new FromTo
-        {
-            Source = sourceEntity,
-            Target = targetEntity
-        });
-
         var previous = Entity.Null;
         var currentInline = Entity.Null;
+        var relativeTo = Entity.Null;
         int i;
         for (i = 0; i < m_GameMaster.NbBotsPerChain; ++i )
         {
@@ -98,6 +81,7 @@ public class SpawnSystem : JobComponentSystem
             // Assign roles
             if (i == 0)
             {
+                relativeTo = botEntity;
                 EntityManager.SetComponentData(botEntity, new Role
                 {
                     Value = BotRole.Fill
@@ -135,6 +119,13 @@ public class SpawnSystem : JobComponentSystem
                 Progress = ((float) i) / m_GameMaster.NbBotsPerChain
             });
         }
+        
+        EntityManager.AddComponentData(chainEntity, new FromTo
+        {
+            Source = randomSeed.NextInt2(m_GameMaster.NbRows),
+            Target = randomSeed.NextInt2(m_GameMaster.NbRows),
+            RelativeTo = relativeTo
+        });
     }
     
     Entity SpawnChainBot(ChainParentComponent chain, float minX, float minY)

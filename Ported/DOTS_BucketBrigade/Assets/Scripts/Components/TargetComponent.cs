@@ -1,7 +1,9 @@
 ﻿using Unity.Entities;
+using Unity.Mathematics;
 
 public struct FromTo : IComponentData
 {
-    public Entity Source;
-    public Entity Target;
+    public float2 Source;
+    public float2 Target;
+    public Entity RelativeTo;
 }

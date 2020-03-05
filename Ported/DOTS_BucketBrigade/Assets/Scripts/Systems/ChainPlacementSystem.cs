@@ -86,13 +86,10 @@ public class ChainPlacementSystem : SystemBase
                 continue;
             var fromTo = EntityManager.GetComponentData<FromTo>(chain.Chain);
 
-            if (fromTo.Source == Entity.Null || fromTo.Target == Entity.Null)
-                continue;
-            
             var job = new ChainBotPlacementJob
             {
-                Source = EntityManager.GetComponentData<PositionInGrid>(fromTo.Source).Value,
-                Target = EntityManager.GetComponentData<PositionInGrid>(fromTo.Target).Value,
+                Source = fromTo.Source,
+                Target = fromTo.Target,
                 CommandBuffer = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent()
             };
             m_EntityQuery.SetSharedComponentFilter(chain);
