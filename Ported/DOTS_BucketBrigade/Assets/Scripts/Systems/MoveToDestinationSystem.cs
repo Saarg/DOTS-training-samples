@@ -18,10 +18,23 @@ public class MoveToDestinationSystem : SystemBase
         
         public EntityCommandBuffer.Concurrent EntityCommandBuffer;
         public float DeltaTime;
+
+        public WaterMaster WaterMaster;
+        
+        [ReadOnly]
+        public ComponentDataFromEntity<Carrying> CarryingFromEntity;
+        [ReadOnly]
+        public ComponentDataFromEntity<GradientState> GradientFromEntity;
         
         public void Execute(Entity entity, int index, ref Position2D pos, ref Destination2D dest, [ReadOnly]ref MovementSpeed speed)
         {
             var dist = speed.Value * DeltaTime;
+
+            if (CarryingFromEntity.HasComponent(entity) && GradientFromEntity[CarryingFromEntity[entity].Value].Value >= 1.0f)
+            {
+                dist *= WaterMaster.CarryMultiplier;
+            }
+            
             var diff = dest.Value - pos.Value;
             var len = math.length(diff);
             var invLen = math.rcp(len);
@@ -35,13 +48,16 @@ public class MoveToDestinationSystem : SystemBase
             }
         }
     }
-    
+
     protected override void OnUpdate()
     {
         var job = new MoveToDestinationJob
         {
             EntityCommandBuffer = m_CommandBufferSystem.CreateCommandBuffer().ToConcurrent(),
             DeltaTime = Time.DeltaTime,
+            WaterMaster = GetSingleton<WaterMaster>(),
+            CarryingFromEntity = GetComponentDataFromEntity<Carrying>(true),
+            GradientFromEntity = GetComponentDataFromEntity<GradientState>(true)
         };
 
         Dependency = job.Schedule(this, Dependency);
@@ -52,5 +68,7 @@ public class MoveToDestinationSystem : SystemBase
     protected override void OnCreate()
     {
         m_CommandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        
+        RequireSingletonForUpdate<WaterMaster>();
     }
 }

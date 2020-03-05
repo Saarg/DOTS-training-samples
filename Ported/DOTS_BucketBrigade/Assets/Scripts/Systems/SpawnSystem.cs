@@ -168,12 +168,12 @@ public class SpawnSystem : JobComponentSystem
                 {
                     EntityManager.SetComponentData(spawnedEntities[i], new Position2D
                     {
-                        Value = new float2(randomSeed.NextFloat(0, m_GameMaster.NbCols), randomSeed.NextFloat(0, m_GameMaster.NbRows))
+                        Value = new float2(randomSeed.NextFloat(5, m_GameMaster.NbCols - 5), randomSeed.NextFloat(5, m_GameMaster.NbRows))
                     });
                 }
                 else
                 {
-                    var gridPos = new int2(randomSeed.NextInt(0, m_GameMaster.NbCols), randomSeed.NextInt(0, m_GameMaster.NbRows));
+                    var gridPos = new int2(randomSeed.NextInt(5, m_GameMaster.NbCols - 5), randomSeed.NextInt(5, m_GameMaster.NbRows - 5));
 
                     EntityManager.SetComponentData(spawnedEntities[i], new PositionInGrid
                     {

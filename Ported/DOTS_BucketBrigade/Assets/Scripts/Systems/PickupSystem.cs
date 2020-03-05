@@ -111,6 +111,7 @@ public class PickupSystem : JobComponentSystem
           .WithReadOnly(carryingFromEntity)
           .Schedule(bucketEntitiesHandle);
 
+        var carriedFromEntity = GetComponentDataFromEntity<Carried>(true);
         // This job asks bots that are on a bucket to pick it up.
         // It looks through all bots that will be on top of the bucket,
         // so they arrived there (no more destination) and that are not carrying any bucket
@@ -118,6 +119,7 @@ public class PickupSystem : JobComponentSystem
             .WithNone<Carrying>()
             .WithNone<Destination2D>()
             .WithAll<BotTag>()
+            .WithReadOnly(carriedFromEntity)
             .ForEach((Entity entity, int nativeThreadIndex, ref MovingTowards movingTowards) =>
         {
             bool closeEnough = false;
@@ -133,7 +135,7 @@ public class PickupSystem : JobComponentSystem
             if (closeEnough && gradientStateFromEntity.Exists(movingTowards.Entity))
             {
                 var gradient = gradientStateFromEntity[movingTowards.Entity].Value;
-                if (gradient <= 0.0f || gradient >= 1.0f)
+                if ((gradient <= 0.0f || gradient >= 1.0f) && !carriedFromEntity.HasComponent(movingTowards.Entity))
                 {
                     commandBuffer.AddComponent(nativeThreadIndex, movingTowards.Entity, new Carried
                     {

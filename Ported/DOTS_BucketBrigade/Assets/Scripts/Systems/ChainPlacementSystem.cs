@@ -68,13 +68,26 @@ public class ChainPlacementSystem : SystemBase
     
     protected override void OnCreate()
     {
-        m_EntityQuery = GetEntityQuery(ComponentType.ReadOnly<InLine>(), ComponentType.ReadOnly<Position2D>()
-            , ComponentType.ReadOnly<ChainParentComponent>(), ComponentType.Exclude<Destination2D>(), ComponentType.ReadOnly<Role>());
+        m_EntityQuery = GetEntityQuery(ComponentType.ReadOnly<InLine>(), 
+            ComponentType.ReadOnly<Position2D>(), 
+            ComponentType.ReadOnly<ChainParentComponent>(), 
+            ComponentType.Exclude<Destination2D>(), 
+            ComponentType.ReadOnly<Role>());
         m_CommandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
     }
     
+    private const float k_TimeBetweenUpdates = 2.0f;
+    private float m_TimeSinceLastUpdate = 0;
+    
     protected override void OnUpdate()
     {
+        m_TimeSinceLastUpdate += Time.DeltaTime;
+        if (m_TimeSinceLastUpdate < k_TimeBetweenUpdates)
+        {
+            return;
+        }
+        m_TimeSinceLastUpdate = 0.0f;
+        
         var chainList = new List<ChainParentComponent>();
         EntityManager.GetAllUniqueSharedComponentData(chainList);
 

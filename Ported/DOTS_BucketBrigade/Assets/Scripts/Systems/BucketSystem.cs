@@ -54,11 +54,17 @@ namespace Systems
                                         {
                                             var fireGradient = gradientFromEntity[cell.Entity];
 
-                                            fireGradient.Value = 0.0f;
-                                                // gradientState.Value *
-                                                // bucketSingleton.CoolingStrength *
-                                                // bucketSingleton.CoolingStrengthFallOff *
-                                                // math.length(offset);
+                                            if (fireGradient.Value >= 1.0f)
+                                            {
+                                                ecb.RemoveComponent<MaxOutFireTag>(nativeThreadIndex, cell.Entity);
+                                                ecb.AddComponent<FireFrontTag>(nativeThreadIndex, cell.Entity);
+                                            }
+
+                                            fireGradient.Value =
+                                                gradientState.Value *
+                                                bucketSingleton.CoolingStrength *
+                                                bucketSingleton.CoolingStrengthFallOff *
+                                                math.length(offset);
 
                                             gradientFromEntity[cell.Entity] = fireGradient;
                                         }
