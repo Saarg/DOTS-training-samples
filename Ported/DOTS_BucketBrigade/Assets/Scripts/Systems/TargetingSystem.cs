@@ -13,9 +13,9 @@ public class TargetingSystem : SystemBase
                 return;
             var position = position2Ds[fromTo.RelativeTo];
 
-            var nearestWater = FindNearestOfTag(position.Value, Grid.Cell.ContentFlags.Water);
             var nearestFire = FindNearestOfTag(position.Value, Grid.Cell.ContentFlags.Fire);
-
+            var nearestWater = FindNearestOfTag(nearestFire, Grid.Cell.ContentFlags.Water);
+            
             if (math.any(fromTo.Source != nearestWater))
                 fromTo.Source = nearestWater;
             if (math.any(fromTo.Target != nearestFire))
@@ -32,15 +32,34 @@ public class TargetingSystem : SystemBase
 
         for (var i = 0; i < biggerLength; ++i)
         {
-            for (var j = -i; j <= i; ++j)
+            for (var j = 0; j <= i; ++j)
             {
-                for (var k = -i; k <= i; ++k)
+                for (var k = 0; k <= i; ++k)
                 {
-                    var testPosition = new float2(position.x +j, position.y + k);
-                    if (grid.Physical[grid.ToGridPos(testPosition)].Flags.HasFlag(flag))
+                    var testJPosKPos = new float2(position.x + j, position.y + k);
+                    if (grid.Physical[grid.ToGridPos(testJPosKPos)].Flags.HasFlag(flag))
                     {
-                        return testPosition;
+                        return testJPosKPos;
                     }
+                    
+                    var testJPosKNeg = new float2(position.x + j, position.y - k);
+                    if (grid.Physical[grid.ToGridPos(testJPosKNeg)].Flags.HasFlag(flag))
+                    {
+                        return testJPosKNeg;
+                    }
+                    
+                    var testJNegKPos = new float2(position.x - j, position.y + k);
+                    if (grid.Physical[grid.ToGridPos(testJNegKPos)].Flags.HasFlag(flag))
+                    {
+                        return testJNegKPos;
+                    }
+                    
+                    var testJNegKNeg = new float2(position.x - j, position.y - k);
+                    if (grid.Physical[grid.ToGridPos(testJNegKNeg)].Flags.HasFlag(flag))
+                    {
+                        return testJNegKNeg;
+                    }
+                    
                 }
             }
         }
