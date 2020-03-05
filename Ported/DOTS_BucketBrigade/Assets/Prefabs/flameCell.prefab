@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 65265904059091994}
   - component: {fileID: 5973768875197472316}
   - component: {fileID: 4019865055166315039}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: flameCell
   m_TagString: Untagged
   m_Icon: {fileID: 0}
