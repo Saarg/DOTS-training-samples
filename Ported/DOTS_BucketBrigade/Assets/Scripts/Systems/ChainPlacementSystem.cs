@@ -28,8 +28,7 @@ public class ChainPlacementSystem : SystemBase
         {
             var dest = GetChainPosition(inLine.Progress, role.Value);
 
-            var same = pos.Value == dest;
-            if (!same.x || !same.y)
+            if (math.lengthsq(pos.Value - dest) > 0.001f)
             {
                 CommandBuffer.AddComponent(m_ThreadIndex, entity, new Destination2D{Value = dest});
             }
@@ -61,8 +60,7 @@ public class ChainPlacementSystem : SystemBase
 
             var source = role == BotRole.PassFull ?  Source : Target;
             var target = role == BotRole.PassFull ?  Target : Source;
-            var newPosition = new float2(math.lerp(source.x, target.x, progress),
-                                         math.lerp(source.y, target.y, progress));
+            var newPosition = math.lerp(source, target, progress);
             newPosition += perpendicular * curveOffset;
             return newPosition;
         }

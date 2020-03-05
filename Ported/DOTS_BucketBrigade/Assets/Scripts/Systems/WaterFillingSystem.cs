@@ -15,8 +15,7 @@ public class WaterFillingSystem : SystemBase
             gradientState.Value = math.min(1.0f, 
                 gradientState.Value + waterSingleton.RefillRate * deltaTime / capacity.Value);
 
-            scale.Value.x = gradientState.Value * capacity.Value * 0.1f;
-            scale.Value.z = gradientState.Value * capacity.Value * 0.1f;
+            scale.Value.xz = gradientState.Value * capacity.Value * 0.1f;
         }).Schedule();
     }
 }

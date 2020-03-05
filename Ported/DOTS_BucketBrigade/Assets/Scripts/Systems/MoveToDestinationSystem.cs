@@ -21,26 +21,12 @@ public class MoveToDestinationSystem : SystemBase
         public void Execute(Entity entity, int index, ref Position2D pos, ref Destination2D dest, [ReadOnly]ref MovementSpeed speed)
         {
             var diff = dest.Value - pos.Value;
+            var len = math.length(diff);
+            var invLen = math.rcp(len);
             
-            var movement = math.normalizesafe(diff) * speed.Value;
-
-            pos.Value += movement;
-
-            var sameX = false;
-            if (math.distancesq(pos.Value.x, dest.Value.x) <= speed.Value)
-            {
-                pos.Value.x = dest.Value.x;
-                sameX = true;
-            }
-
-            var sameY = false;
-            if (math.distancesq(pos.Value.y, dest.Value.y) <= speed.Value)
-            {
-                pos.Value.y = dest.Value.y;
-                sameY = true;
-            }
-
-            if (sameX && sameY)
+            pos.Value += diff * invLen * math.min(speed.Value, len);
+            
+            if (speed.Value >= len)
             {
                 EntityCommandBuffer.RemoveComponent<Destination2D>(m_ThreadIndex, entity);
             }
