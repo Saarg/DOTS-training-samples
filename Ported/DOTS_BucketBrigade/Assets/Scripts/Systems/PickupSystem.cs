@@ -2,7 +2,6 @@
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Burst;
 
 [UpdateBefore(typeof(MoveToDestinationSystem))]
 public class PickupSystem : JobComponentSystem
@@ -70,58 +69,24 @@ public class PickupSystem : JobComponentSystem
                         nativeThreadIndex, 
                         commandBuffer);
                 }
-                else if (role == BotRole.PassEmpty || role == BotRole.PassFull || role == BotRole.Throw)
+                else if (role == BotRole.PassEmpty && inlineFromEntity.Exists(entity))
                 {
-                    // Need to check the chain previous members to see if they have a bucket to pass further
-                    if (inlineFromEntity.Exists(entity))
+                    var previous = inlineFromEntity[entity].Previous;
+                    // Special case where previous is the Thrower so this guy needs to go scoop up empty buckets
+                    var previousRole = roleFromEntity[previous].Value;
+                    if (previousRole == BotRole.Throw)
                     {
-                        var previous = inlineFromEntity[entity].Previous;
-                        // Special case where previous is the Thrower so this guy needs to go scoop up empty buckets
-                        var previousRole = roleFromEntity[previous].Value;
-                        if (previousRole == BotRole.Throw)
-                        {
-                            GoToNearestEmptyBucket(
-                                bucketEntities, 
-                                pos2DFromEntity, 
-                                gradientStateFromEntity, 
-                                entity,
-                                nativeThreadIndex, 
-                                commandBuffer);
-                        }
-                        // If previous member is carrying a bucket, go towards him
-                        else if (/*previous != Entity.Null && carryingFromEntity.Exists(previous)*/false)
-                        {
-                            // Pass_Empty must only get a destination once the carried bucket is empty
-                            // Pass_Full must only get a destination once the carried bucket is full
-                            var bucket = carryingFromEntity[previous].Value;
-                            if (gradientStateFromEntity.Exists(bucket))
-                            {
-                                var gradient = gradientStateFromEntity[bucket].Value;
-                                if (role == BotRole.PassEmpty && gradient <= 0.0f || role == BotRole.PassFull && gradient >= 1.0f || role == BotRole.Throw)
-                                {
-                                    // current ----- TARGET ----- previous
-                                    var currentPos = pos2DFromEntity[entity].Value;
-                                    var previousPos = pos2DFromEntity[previous].Value;
-                                    var target = (currentPos + previousPos) / 2.0f;
-
-                                    commandBuffer.AddComponent(nativeThreadIndex, entity, new Destination2D
-                                    {
-                                        Value = target
-                                    });
-
-                                    commandBuffer.AddComponent(nativeThreadIndex, entity, new MovingTowards
-                                    {
-                                        Entity = bucket,
-                                        Position = target
-                                    });
-                                }
-                            }
-                        }
+                        GoToNearestEmptyBucket(
+                            bucketEntities, 
+                            pos2DFromEntity, 
+                            gradientStateFromEntity, 
+                            entity,
+                            nativeThreadIndex, 
+                            commandBuffer);
                     }
                 }
             }).WithReadOnly(pos2DFromEntity)
               .WithReadOnly(inlineFromEntity)
-              //.WithReadOnly(carryingFromEntity)
               .WithReadOnly(gradientStateFromEntity)
               .WithReadOnly(roleFromEntity)
               .Schedule(bucketEntitiesHandle);
@@ -137,30 +102,48 @@ public class PickupSystem : JobComponentSystem
             .WithReadOnly(carriedFromEntity)
             .ForEach((Entity entity, int nativeThreadIndex, ref MovingTowards movingTowards) =>
         {
-            var closeEnough = false;
+            var pickUpbucket = false;
+            var removeMovingTowards = false;
             if (pos2DFromEntity.Exists(entity))
             {
                 var distance = math.distancesq(movingTowards.Position, pos2DFromEntity[entity].Value);
                 if (distance < 0.25f)
                 {
-                    closeEnough = true;
+                    pickUpbucket = true;
+                    removeMovingTowards = true;
+                }
+
+                if (movingTowards.Entity != null && pos2DFromEntity.Exists(movingTowards.Entity))
+                {
+                    distance = math.distancesq(pos2DFromEntity[movingTowards.Entity].Value, pos2DFromEntity[entity].Value);
+                    if (distance > 0.25f)
+                    {
+                        pickUpbucket = false;
+                    }
                 }
             }
-            
-            if (closeEnough && gradientStateFromEntity.Exists(movingTowards.Entity))
+
+            if (movingTowards.Entity != null && gradientStateFromEntity.Exists(movingTowards.Entity))
             {
                 var gradient = gradientStateFromEntity[movingTowards.Entity].Value;
                 if ((gradient <= 0.0f || gradient >= 1.0f) && !carriedFromEntity.HasComponent(movingTowards.Entity))
                 {
-                    commandBuffer.AddComponent(nativeThreadIndex, movingTowards.Entity, new Carried
+                    if (pickUpbucket)
                     {
-                        Value = entity
-                    });
-                    commandBuffer.AddComponent(nativeThreadIndex, entity, new Carrying
+                        commandBuffer.AddComponent(nativeThreadIndex, movingTowards.Entity, new Carried
+                        {
+                            Value = entity
+                        });
+                        commandBuffer.AddComponent(nativeThreadIndex, entity, new Carrying
+                        {
+                            Value = movingTowards.Entity
+                        });
+                    }
+
+                    if (removeMovingTowards)
                     {
-                        Value = movingTowards.Entity
-                    });
-                    commandBuffer.RemoveComponent<MovingTowards>(nativeThreadIndex, entity);
+                        commandBuffer.RemoveComponent<MovingTowards>(nativeThreadIndex, entity);
+                    }
                 }
             }
         }).WithReadOnly(gradientStateFromEntity)
@@ -245,40 +228,50 @@ public class PickupSystem : JobComponentSystem
             if (pos2DFromEntity.Exists(entity))
             {
                 var distance = math.distancesq(movingTowards.Position, pos2DFromEntity[entity].Value);
-                if (distance < 0.25f)
+                if (distance <= 0.25f)
                 {
                     closeEnough = true;
                 }
             }
 
-            if (closeEnough && carryingFromEntity.Exists(entity) && inlineFromEntity.Exists(entity) && roleFromEntity.Exists(entity))
+            if (closeEnough && carryingFromEntity.Exists(entity) && roleFromEntity.Exists(entity))
             {
-                var role = roleFromEntity[entity].Value;
-                var inline = inlineFromEntity[entity];
-                var gradientOfBucket = gradientStateFromEntity[carryingFromEntity[entity].Value].Value;
-                var shouldPassBucket = role == BotRole.PassFull
-                                          || role == BotRole.PassEmpty && roleFromEntity[inline.Next].Value != BotRole.Fill
-                                          || role == BotRole.Fill && gradientOfBucket >= 1.0f;
-                
                 var bucketEntity = carryingFromEntity[entity].Value;
-                if (shouldPassBucket)
+                var role = roleFromEntity[entity].Value;
+                if (role == BotRole.Omnibot)
                 {
-                    commandBuffer.AddComponent(nativeThreadIndex, inline.Next, new Carrying
-                    {
-                        Value = bucketEntity
-                    });
+                    commandBuffer.RemoveComponent<Carried>(nativeThreadIndex, bucketEntity);
+                    commandBuffer.RemoveComponent<Carrying>(nativeThreadIndex, entity);
+                    commandBuffer.RemoveComponent<MovingTowards>(nativeThreadIndex, entity);
+                }
+                else if (inlineFromEntity.Exists(entity))
+                {
+                    var inline = inlineFromEntity[entity];
+                    var gradientOfBucket = gradientStateFromEntity[carryingFromEntity[entity].Value].Value;
+                    var shouldPassBucket = role == BotRole.PassFull
+                                           || role == BotRole.PassEmpty &&
+                                           roleFromEntity[inline.Next].Value != BotRole.Fill
+                                           || role == BotRole.Fill && gradientOfBucket >= 1.0f;
 
-                    commandBuffer.RemoveComponent<Carried>(nativeThreadIndex, bucketEntity);
-                    commandBuffer.AddComponent(nativeThreadIndex, bucketEntity, new Carried
+                    if (shouldPassBucket)
                     {
-                        Value = inline.Next
-                    });
+                        commandBuffer.AddComponent(nativeThreadIndex, inline.Next, new Carrying
+                        {
+                            Value = bucketEntity
+                        });
+
+                        commandBuffer.RemoveComponent<Carried>(nativeThreadIndex, bucketEntity);
+                        commandBuffer.AddComponent(nativeThreadIndex, bucketEntity, new Carried
+                        {
+                            Value = inline.Next
+                        });
+                    }
+                    else
+                    {
+                        commandBuffer.RemoveComponent<Carried>(nativeThreadIndex, bucketEntity);
+                    }
                 }
-                else
-                {
-                    commandBuffer.RemoveComponent<Carried>(nativeThreadIndex, bucketEntity);
-                }
-                
+
                 commandBuffer.RemoveComponent<Carrying>(nativeThreadIndex, entity);
                 commandBuffer.RemoveComponent<MovingTowards>(nativeThreadIndex, entity);
             }
@@ -389,7 +382,7 @@ public class PickupSystem : JobComponentSystem
     static void GoTo(Entity entity, Entity targetEntity, EntityCommandBuffer.Concurrent commandBuffer, int nativeThreadIndex, ComponentDataFromEntity<Position2D> pos2DFromEntity)
     {
         // Tell the bot to go to that destination
-        if (entity != Entity.Null)
+        if (entity != Entity.Null && pos2DFromEntity.Exists(targetEntity))
         {
             GoTo(entity, targetEntity, pos2DFromEntity[targetEntity].Value, commandBuffer, nativeThreadIndex);
         }
