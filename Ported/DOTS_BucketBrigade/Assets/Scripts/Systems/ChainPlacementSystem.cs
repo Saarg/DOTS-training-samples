@@ -13,7 +13,7 @@ public class ChainPlacementSystem : SystemBase
     EntityQuery m_EntityQuery;
     private EndSimulationEntityCommandBufferSystem m_CommandBufferSystem;
 
-    [BurstCompile]
+    [BurstCompile, ExcludeComponent(typeof(Destination2D))]
     struct ChainBotPlacementJob : IJobForEachWithEntity<InLine, Position2D, Role>
     {
         [NativeSetThreadIndex]
@@ -30,6 +30,7 @@ public class ChainPlacementSystem : SystemBase
             if (math.lengthsq(pos.Value - dest) > 0.001f)
             {
                 CommandBuffer.AddComponent(m_ThreadIndex, entity, new Destination2D{Value = dest});
+                CommandBuffer.RemoveComponent<MovingTowards>(m_ThreadIndex, entity);
             }
         }
         
@@ -75,13 +76,13 @@ public class ChainPlacementSystem : SystemBase
         m_CommandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
     }
     
-    private const float k_TimeBetweenUpdates = 2.0f;
-    private float m_TimeSinceLastUpdate = 0;
+    private const float k_TimeBetweenUpdates = 0.5f;
+    private float m_TimeSinceLastUpdate = k_TimeBetweenUpdates;
     
     protected override void OnUpdate()
     {
         m_TimeSinceLastUpdate += Time.DeltaTime;
-        if (m_TimeSinceLastUpdate < k_TimeBetweenUpdates)
+        if (m_TimeSinceLastUpdate <= k_TimeBetweenUpdates)
         {
             return;
         }

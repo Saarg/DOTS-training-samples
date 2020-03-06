@@ -27,7 +27,7 @@ public class TargetingSystem : JobComponentSystem
             var nearestFire = FindNearestOfTag(position.Value, Grid.Cell.ContentFlags.Fire, Grid, GameMaster);
             var nearestWater = FindNearestOfTag(nearestFire, Grid.Cell.ContentFlags.Water, Grid, GameMaster);
             
-            if (math.distancesq(fromTo.Source, nearestWater) > 25.0f)
+            if (math.distancesq(fromTo.Source, nearestWater) > 100.0f)
                 fromTo.Source = nearestWater;
             if (math.distancesq(fromTo.Target, nearestFire) > 4.0f)
                 fromTo.Target = nearestFire;
@@ -35,12 +35,12 @@ public class TargetingSystem : JobComponentSystem
     }
 
     private const float k_TimeBetweenUpdates = 2.0f;
-    private float m_TimeSinceLastUpdate = 0;
+    private float m_TimeSinceLastUpdate = k_TimeBetweenUpdates;
     
     protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
         m_TimeSinceLastUpdate += Time.DeltaTime;
-        if (m_TimeSinceLastUpdate < k_TimeBetweenUpdates)
+        if (m_TimeSinceLastUpdate <= k_TimeBetweenUpdates)
         {
             return default;
         }
