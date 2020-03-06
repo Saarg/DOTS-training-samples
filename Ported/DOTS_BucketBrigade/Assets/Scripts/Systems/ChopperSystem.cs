@@ -92,7 +92,7 @@ public class ChopperSystem : JobComponentSystem
                     {
                         c.State = Chopper.ActionState.MovingUp;
 
-                        if (c.DropFire && !(grid.Physical.ContainsKey(posInGrid)) && !(grid.Simulation.ContainsKey(posInGrid)))
+                        if (c.DropFire && !(grid.Physical.ContainsKey(posInGrid)))
                         {
                             var fire = ecb.Instantiate(entityInQueryIndex, gameMaster.FirePrefab);
                             ecb.SetComponent(entityInQueryIndex, fire, new GradientState {Value = 1.5f});
@@ -125,7 +125,7 @@ public class ChopperSystem : JobComponentSystem
             {
                 var posInGrid = grid.ToGridPos(dest.Value);
 
-                if (c.DropFire && (grid.Physical.ContainsKey(posInGrid) || grid.Simulation.ContainsKey(posInGrid)))
+                if (c.DropFire && (grid.Physical.ContainsKey(posInGrid)))
                 {
                     c.State = Chopper.ActionState.MovingUp;
                     ecb.RemoveComponent<Destination2D>(entityInQueryIndex, entity);
