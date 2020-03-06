@@ -44,7 +44,6 @@ public class PickupSystem : JobComponentSystem
 
         // This job gives a Destination2D to bots that do not have one yet and are able to go find a bucket
         var findBucketJobHandle = Entities
-            .WithoutBurst()
             .WithNone<Destination2D>()
             .WithNone<Carrying>()
             .WithAll<BotTag>()
@@ -52,9 +51,17 @@ public class PickupSystem : JobComponentSystem
             .ForEach((Entity entity, int nativeThreadIndex) =>
             {
                 var role = roleFromEntity[entity].Value;
-                if (role == BotRole.Fill || role == BotRole.Omnibot)
+                if (role == BotRole.Fill)
                 {
-                    // Get nearest empty bucket
+                    GoToNearestBucket(
+                        bucketEntities, 
+                        pos2DFromEntity, 
+                        entity,
+                        nativeThreadIndex, 
+                        commandBuffer);
+                }
+                else if (role == BotRole.Omnibot)
+                {
                     GoToNearestEmptyBucket(
                         bucketEntities, 
                         pos2DFromEntity, 
@@ -124,18 +131,17 @@ public class PickupSystem : JobComponentSystem
         // It looks through all bots that will be on top of the bucket,
         // so they arrived there (no more destination) and that are not carrying any bucket
         var pickupBucketJobHandle = Entities
-            .WithoutBurst()
             .WithNone<Carrying>()
             .WithNone<Destination2D>()
             .WithAll<BotTag>()
             .WithReadOnly(carriedFromEntity)
             .ForEach((Entity entity, int nativeThreadIndex, ref MovingTowards movingTowards) =>
         {
-            bool closeEnough = false;
+            var closeEnough = false;
             if (pos2DFromEntity.Exists(entity))
             {
-                var distance = math.distance(movingTowards.Position, pos2DFromEntity[entity].Value);
-                if (distance < 0.5f)
+                var distance = math.distancesq(movingTowards.Position, pos2DFromEntity[entity].Value);
+                if (distance < 0.25f)
                 {
                     closeEnough = true;
                 }
@@ -162,7 +168,6 @@ public class PickupSystem : JobComponentSystem
           .Schedule(findBucketJobHandle);
 
         var moveBucketJobHandle = Entities
-            .WithoutBurst()
             .WithAll<BotTag>()
             .WithAll<Carrying>()
             .WithNone<Destination2D>()
@@ -215,35 +220,13 @@ public class PickupSystem : JobComponentSystem
                 else if (role == BotRole.PassEmpty || role == BotRole.PassFull)
                 {
                     // Find the next in line and go to the half point
-                    bool success = GoToNextInLine(
+                    GoToNextInLine(
                         inlineFromEntity, 
                         carryingFromEntity, 
                         pos2DFromEntity, 
                         nativeThreadIndex, 
                         entity, 
                         commandBuffer);
-
-                    // This means that the next in line is the water, which means this
-                    // guy was the last in the Pass_Empty so he needs to go to the water
-                    if (!success)
-                    {
-                        // Go to nearest water
-                        var nearestWaterPos = TargetingSystem.FindNearestOfTag(
-                            pos2DFromEntity[entity].Value,
-                            Grid.Cell.ContentFlags.Water,
-                            grid,
-                            gameMaster);
-                        
-                        commandBuffer.AddComponent(nativeThreadIndex, entity, new Destination2D
-                        {
-                            Value = nearestWaterPos
-                        });
-                        commandBuffer.AddComponent(nativeThreadIndex, entity, new MovingTowards
-                        {
-                            Entity = Entity.Null,
-                            Position = nearestWaterPos
-                        });
-                    }
                 }
             }).WithReadOnly(gradientStateFromEntity)
               .WithReadOnly(pos2DFromEntity)
@@ -253,17 +236,16 @@ public class PickupSystem : JobComponentSystem
               .Schedule(pickupBucketJobHandle);
 
         var dropBucketJobHandle = Entities
-            .WithoutBurst()
             .WithAll<BotTag>()
             .WithNone<Destination2D>()
             .WithAll<Carrying>()
             .ForEach((Entity entity, int nativeThreadIndex, ref MovingTowards movingTowards) =>
         {
-            bool closeEnough = false;
+            var closeEnough = false;
             if (pos2DFromEntity.Exists(entity))
             {
-                var distance = math.distance(movingTowards.Position, pos2DFromEntity[entity].Value);
-                if (distance < 0.5f)
+                var distance = math.distancesq(movingTowards.Position, pos2DFromEntity[entity].Value);
+                if (distance < 0.25f)
                 {
                     closeEnough = true;
                 }
@@ -291,6 +273,34 @@ public class PickupSystem : JobComponentSystem
         return disposeHandle;
     }
 
+    static void GoToNearestBucket(
+        NativeArray<Entity> bucketEntities,
+        ComponentDataFromEntity<Position2D> pos2DFromEntity,
+        Entity entity,
+        int nativeThreadIndex,
+        EntityCommandBuffer.Concurrent commandBuffer)
+    {
+        var distance = 999f;
+        var nearestBucket = Entity.Null;
+        for (int i = 0, length = bucketEntities.Length; i < length; ++i)
+        {
+            if (   pos2DFromEntity.Exists(bucketEntities[i]) 
+                && pos2DFromEntity.Exists(entity))
+            {
+                var bucketPos = pos2DFromEntity[bucketEntities[i]];
+                var newDistance = math.distance(bucketPos.Value, pos2DFromEntity[entity].Value);
+                // If the distance is smaller than the previous smallest distance, switch it out
+                if (newDistance < distance)
+                {
+                    distance = newDistance;
+                    nearestBucket = bucketEntities[i];
+                }
+            }
+        }
+
+        GoTo(entity, nearestBucket, commandBuffer, nativeThreadIndex, pos2DFromEntity);
+    }
+    
     static void GoToNearestEmptyBucket(
         NativeArray<Entity> bucketEntities,
         ComponentDataFromEntity<Position2D> pos2DFromEntity,
@@ -319,20 +329,7 @@ public class PickupSystem : JobComponentSystem
             }
         }
         
-        // Tell the bot to go to that destination
-        if (nearestBucket != Entity.Null)
-        {
-            commandBuffer.AddComponent(nativeThreadIndex, entity, new Destination2D
-            {
-                Value = pos2DFromEntity[nearestBucket].Value
-            });
-
-            commandBuffer.AddComponent(nativeThreadIndex, entity, new MovingTowards
-            {
-                Entity = nearestBucket,
-                Position = pos2DFromEntity[nearestBucket].Value
-            });
-        }
+        GoTo(entity, nearestBucket, commandBuffer, nativeThreadIndex, pos2DFromEntity);
     }
 
     static bool GoToNextInLine(ComponentDataFromEntity<InLine> inlineFromEntity,
@@ -353,21 +350,36 @@ public class PickupSystem : JobComponentSystem
                 var nextPos = pos2DFromEntity[next].Value;
                 var targetPos = (currentPos + nextPos) / 2.0f;
 
-                commandBuffer.AddComponent(nativeThreadIndex, entity, new Destination2D
-                {
-                    Value = targetPos
-                });
-                commandBuffer.AddComponent(nativeThreadIndex, entity, new MovingTowards
-                {
-                    Entity = carryingFromEntity[entity].Value,
-                    Position = targetPos
-                });
+                GoTo(entity, carryingFromEntity[entity].Value, targetPos, commandBuffer, nativeThreadIndex);
 
                 success = true;
             }
         }
 
         return success;
+    }
+    
+    static void GoTo(Entity entity, Entity targetEntity, EntityCommandBuffer.Concurrent commandBuffer, int nativeThreadIndex, ComponentDataFromEntity<Position2D> pos2DFromEntity)
+    {
+        // Tell the bot to go to that destination
+        if (entity != Entity.Null)
+        {
+            GoTo(entity, targetEntity, pos2DFromEntity[targetEntity].Value, commandBuffer, nativeThreadIndex);
+        }
+    }
+
+    static void GoTo(Entity entity, Entity targetEntity, float2 targetPos2D, EntityCommandBuffer.Concurrent commandBuffer, int nativeThreadIndex)
+    {
+        commandBuffer.AddComponent(nativeThreadIndex, entity, new Destination2D
+        {
+            Value = targetPos2D
+        });
+
+        commandBuffer.AddComponent(nativeThreadIndex, entity, new MovingTowards
+        {
+            Entity = targetEntity,
+            Position = targetPos2D
+        });
     }
 }
     

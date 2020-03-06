@@ -61,6 +61,7 @@ public class SpawnSystem : JobComponentSystem
         var previous = Entity.Null;
         var currentInline = Entity.Null;
         var relativeTo = Entity.Null;
+        
         int i;
         for (i = 0; i < m_GameMaster.NbBotsPerChain; ++i )
         {
@@ -115,7 +116,7 @@ public class SpawnSystem : JobComponentSystem
             EntityManager.AddComponentData(currentInline, new InLine
             {
                 Previous = previous,
-                Next = Entity.Null,
+                Next = relativeTo, // first in line
                 Progress = ((float) i) / m_GameMaster.NbBotsPerChain
             });
         }
