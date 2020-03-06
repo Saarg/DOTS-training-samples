@@ -123,7 +123,7 @@ public class ChopperSystem : JobComponentSystem
         var handleMove = Entities
             .ForEach((Entity entity, int entityInQueryIndex, ref Chopper c, ref Translation t, ref Destination2D dest, in FromTo ft, in Position2D pos) =>
             {
-                var posInGrid = grid.ToGridPos(pos);
+                var posInGrid = grid.ToGridPos(dest.Value);
 
                 if (c.DropFire && (grid.Physical.ContainsKey(posInGrid) || grid.Simulation.ContainsKey(posInGrid)))
                 {
