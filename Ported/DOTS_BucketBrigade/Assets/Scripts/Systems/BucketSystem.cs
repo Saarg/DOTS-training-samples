@@ -78,7 +78,7 @@ namespace Systems
                         throw new NotImplementedException();
                 }
                 
-                scale.Value = new float3(math.lerp(bucketSingleton.Size_Empty, bucketSingleton.Size_Full, gradientState.Value));
+                scale.Value = new float3(math.lerp(bucketSingleton.Size_Empty, bucketSingleton.Size_Full, math.max(1, gradientState.Value)));
                 gradientFromEntity[entity] = gradientState;
             }).Schedule(Dependency);
             m_CommandBufferSystem.AddJobHandleForProducer(Dependency);
