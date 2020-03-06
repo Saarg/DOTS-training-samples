@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
+[UpdateInGroup(typeof(InitializationSystemGroup))]
 public class TargetingSystem : JobComponentSystem
 {
     [BurstCompile]
@@ -54,7 +55,7 @@ public class TargetingSystem : JobComponentSystem
         };
         
         var fromToJobHandle = fromToJob.Schedule(this, inputDeps);
-
+        
         return fromToJobHandle;
     }
 

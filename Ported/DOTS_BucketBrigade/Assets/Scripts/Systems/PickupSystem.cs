@@ -268,7 +268,8 @@ public class PickupSystem : JobComponentSystem
                         Value = bucketEntity
                     });
 
-                    commandBuffer.SetComponent(nativeThreadIndex, bucketEntity, new Carried
+                    commandBuffer.RemoveComponent<Carried>(nativeThreadIndex, bucketEntity);
+                    commandBuffer.AddComponent(nativeThreadIndex, bucketEntity, new Carried
                     {
                         Value = inline.Next
                     });

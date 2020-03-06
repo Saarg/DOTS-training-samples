@@ -7,11 +7,11 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
-[UpdateBefore(typeof(MoveToDestinationSystem))]
+[UpdateInGroup(typeof(InitializationSystemGroup))]
 public class ChainPlacementSystem : SystemBase
 {
     EntityQuery m_EntityQuery;
-    private EndSimulationEntityCommandBufferSystem m_CommandBufferSystem;
+    EntityCommandBufferSystem m_CommandBufferSystem;
 
     [BurstCompile, ExcludeComponent(typeof(Destination2D))]
     struct ChainBotPlacementJob : IJobForEachWithEntity<InLine, Position2D, Role>
@@ -73,7 +73,7 @@ public class ChainPlacementSystem : SystemBase
             ComponentType.ReadOnly<ChainParentComponent>(), 
             ComponentType.Exclude<Destination2D>(), 
             ComponentType.ReadOnly<Role>());
-        m_CommandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        m_CommandBufferSystem = World.GetOrCreateSystem<EndInitializationEntityCommandBufferSystem>();
     }
     
     private const float k_TimeBetweenUpdates = 0.5f;
