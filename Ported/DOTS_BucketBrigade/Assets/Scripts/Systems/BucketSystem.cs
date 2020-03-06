@@ -54,10 +54,8 @@ namespace Systems
                                         {
                                             var fireGradient = gradientFromEntity[cell.Entity];
 
-                                            fireGradient.Value =
-                                                                 -gradientState.Value *
-                                                                 bucketSingleton.CoolingStrength *
-                                                                 bucketSingleton.CoolingStrengthFallOff *
+                                            fireGradient.Value -= gradientState.Value *
+                                                                 bucketSingleton.CoolingStrength /
                                                                  math.length(offset);
 
                                             gradientFromEntity[cell.Entity] = fireGradient;

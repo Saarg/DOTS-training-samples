@@ -1271,8 +1271,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 282840810}
-  m_LocalRotation: {x: 0.23713103, y: 0.29265106, z: -0.075161405, w: 0.9232958}
-  m_LocalPosition: {x: -8.911186, y: 24.750153, z: -19.019943}
+  m_LocalRotation: {x: 0.5796577, y: 0.0014858177, z: -0.0010554747, w: 0.8148581}
+  m_LocalPosition: {x: 25.189735, y: 53.308495, z: 2.130598}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1224486604}
@@ -9006,7 +9006,7 @@ PrefabInstance:
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
       propertyPath: NbBuckets
-      value: 62
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
@@ -9116,7 +9116,7 @@ PrefabInstance:
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
       propertyPath: Fire_HeatTransferRate
-      value: 0.1
+      value: 0.13
       objectReference: {fileID: 0}
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
@@ -9131,7 +9131,7 @@ PrefabInstance:
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
       propertyPath: NbOmnibots
-      value: 10
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
@@ -9151,7 +9151,7 @@ PrefabInstance:
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
       propertyPath: Water_CoolingStrengthFallOff
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}

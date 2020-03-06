@@ -5,15 +5,20 @@ using UnityEngine;
 
 public class ClickableFloorToGridSystem : SystemBase
 {
+    private Camera m_Camera;
+
+    protected override void OnCreate()
+    {
+        m_Camera = Camera.main;
+    }
+
     protected override void OnUpdate()
     {
-        Grid grid = GetSingleton<Grid>();
-        GameMaster gameMaster = GetSingleton<GameMaster>();
-        
-        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
         if (!Input.GetMouseButton(1) && !Input.GetMouseButtonDown(0))
             return;
+
+        GameMaster gameMaster = GetSingleton<GameMaster>();
+        var ray = m_Camera.ScreenPointToRay(Input.mousePosition);
         var endSim = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         var commandBuffer = endSim.CreateCommandBuffer();
         Entities.ForEach((MeshCollider collider) =>
