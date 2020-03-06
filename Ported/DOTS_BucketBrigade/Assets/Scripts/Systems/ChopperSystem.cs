@@ -104,7 +104,7 @@ public class ChopperSystem : JobComponentSystem
                             if (c.IsToDropWaterOnFire && (grid.Physical.TryGetValue(grid.ToGridPos(pos), out Grid.Cell cell)) && cell.Flags == Grid.Cell.ContentFlags.Fire)
                             {
                                 var bucket = ecb.Instantiate(entityInQueryIndex, gameMaster.BucketPrefab);
-                                ecb.SetComponent(entityInQueryIndex, bucket, new GradientState {Value = 1.0f});
+                                ecb.SetComponent(entityInQueryIndex, bucket, new GradientState {Value = 100.0f});
                                 ecb.SetComponent(entityInQueryIndex, bucket, new Position2D {Value = pos.Value});
                                 ecb.AddComponent<DestroyBucketWhenEmptyTag>(entityInQueryIndex, bucket);
                             }
