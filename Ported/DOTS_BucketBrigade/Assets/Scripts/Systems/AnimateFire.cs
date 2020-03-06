@@ -6,7 +6,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-[UpdateInGroup(typeof(InitializationSystemGroup))]
+[UpdateInGroup(typeof(SimulationSystemGroup))]
 [UpdateAfter(typeof(GridUpdate))]
 public class AnimateFire : JobComponentSystem
 {
