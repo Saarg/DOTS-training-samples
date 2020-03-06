@@ -1271,8 +1271,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 282840810}
-  m_LocalRotation: {x: 0.5796471, y: 0.005143255, z: -0.0036572292, w: 0.81484324}
-  m_LocalPosition: {x: 18.2199, y: 92.79771, z: -15.717695}
+  m_LocalRotation: {x: 0.23713103, y: 0.29265106, z: -0.075161405, w: 0.9232958}
+  m_LocalPosition: {x: -8.911186, y: 24.750153, z: -19.019943}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1224486604}
@@ -9116,7 +9116,7 @@ PrefabInstance:
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
       propertyPath: Fire_HeatTransferRate
-      value: 0.13
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
@@ -9166,7 +9166,7 @@ PrefabInstance:
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
       propertyPath: Water_CarryMultiplier
-      value: 0.88
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
         type: 3}
