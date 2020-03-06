@@ -457,7 +457,7 @@ PrefabInstance:
     - target: {fileID: 1822868858795466314, guid: ac37db34dc7a347b2b7815a61d923be5,
         type: 3}
       propertyPath: ChopperHorizontalSpeed
-      value: 6
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 1822868858795466314, guid: ac37db34dc7a347b2b7815a61d923be5,
         type: 3}
@@ -620,7 +620,7 @@ PrefabInstance:
     - target: {fileID: 1822868858795466314, guid: ac37db34dc7a347b2b7815a61d923be5,
         type: 3}
       propertyPath: ChopperHorizontalSpeed
-      value: 6
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 1822868858795466314, guid: ac37db34dc7a347b2b7815a61d923be5,
         type: 3}
