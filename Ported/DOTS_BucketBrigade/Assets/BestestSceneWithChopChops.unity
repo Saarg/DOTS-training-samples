@@ -8988,7 +8988,7 @@ Transform:
   m_Children:
   - {fileID: 1153582607}
   m_Father: {fileID: 1312948502}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &832014377
 PrefabInstance:
@@ -13400,8 +13400,8 @@ Transform:
   m_LocalPosition: {x: 49.5, y: 0, z: -9.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 64242680}
   - {fileID: 830745748}
+  - {fileID: 64242680}
   - {fileID: 1409649166}
   m_Father: {fileID: 1224486604}
   m_RootOrder: 25
@@ -19102,6 +19102,16 @@ PrefabInstance:
         type: 3}
       propertyPath: SpawnWater
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: NbRows
+      value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: 2166879065173840107, guid: b0d2423c3e9d44b3086493883e9cc3a5,
+        type: 3}
+      propertyPath: NbCols
+      value: 80
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0d2423c3e9d44b3086493883e9cc3a5, type: 3}
