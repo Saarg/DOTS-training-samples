@@ -4,7 +4,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-[UpdateInGroup(typeof(InitializationSystemGroup))]
+// [UpdateInGroup(typeof(InitializationSystemGroup))]
 public class TargetingSystem : JobComponentSystem
 {
     [BurstCompile]

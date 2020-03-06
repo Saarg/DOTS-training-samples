@@ -7,7 +7,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
-[UpdateInGroup(typeof(InitializationSystemGroup))]
+// [UpdateInGroup(typeof(InitializationSystemGroup))]
 public class ChainPlacementSystem : SystemBase
 {
     EntityQuery m_EntityQuery;
