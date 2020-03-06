@@ -89,7 +89,7 @@ public class PickupSystem : JobComponentSystem
                                 commandBuffer);
                         }
                         // If previous member is carrying a bucket, go towards him
-                        else if (previous != Entity.Null && carryingFromEntity.Exists(previous))
+                        else if (/*previous != Entity.Null && carryingFromEntity.Exists(previous)*/false)
                         {
                             // Pass_Empty must only get a destination once the carried bucket is empty
                             // Pass_Full must only get a destination once the carried bucket is full
@@ -121,7 +121,7 @@ public class PickupSystem : JobComponentSystem
                 }
             }).WithReadOnly(pos2DFromEntity)
               .WithReadOnly(inlineFromEntity)
-              .WithReadOnly(carryingFromEntity)
+              //.WithReadOnly(carryingFromEntity)
               .WithReadOnly(gradientStateFromEntity)
               .WithReadOnly(roleFromEntity)
               .Schedule(bucketEntitiesHandle);
@@ -251,17 +251,43 @@ public class PickupSystem : JobComponentSystem
                 }
             }
 
-            if (closeEnough && carryingFromEntity.Exists(entity))
+            if (closeEnough && carryingFromEntity.Exists(entity) && inlineFromEntity.Exists(entity) && roleFromEntity.Exists(entity))
             {
+                var role = roleFromEntity[entity].Value;
+                var inline = inlineFromEntity[entity];
+                var gradientOfBucket = gradientStateFromEntity[carryingFromEntity[entity].Value].Value;
+                var shouldPassBucket = role == BotRole.PassFull
+                                          || role == BotRole.PassEmpty && roleFromEntity[inline.Next].Value != BotRole.Fill
+                                          || role == BotRole.Fill && gradientOfBucket >= 1.0f;
+                
                 var bucketEntity = carryingFromEntity[entity].Value;
-                commandBuffer.RemoveComponent<Carried>(nativeThreadIndex, bucketEntity);
+                if (shouldPassBucket)
+                {
+                    commandBuffer.AddComponent(nativeThreadIndex, inline.Next, new Carrying
+                    {
+                        Value = bucketEntity
+                    });
+
+                    commandBuffer.SetComponent(nativeThreadIndex, bucketEntity, new Carried
+                    {
+                        Value = inline.Next
+                    });
+                }
+                else
+                {
+                    commandBuffer.RemoveComponent<Carried>(nativeThreadIndex, bucketEntity);
+                }
+                
                 commandBuffer.RemoveComponent<Carrying>(nativeThreadIndex, entity);
                 commandBuffer.RemoveComponent<MovingTowards>(nativeThreadIndex, entity);
             }
 
-        }).WithReadOnly(pos2DFromEntity)
-          .WithReadOnly(carryingFromEntity)
-          .Schedule(moveBucketJobHandle);
+        })  .WithReadOnly(pos2DFromEntity)
+            .WithReadOnly(roleFromEntity)
+            .WithReadOnly(inlineFromEntity)
+            .WithReadOnly(carryingFromEntity)
+            .WithReadOnly(gradientStateFromEntity)
+            .Schedule(moveBucketJobHandle);
 
         m_CommandBufferSystem.AddJobHandleForProducer(findBucketJobHandle);
         m_CommandBufferSystem.AddJobHandleForProducer(pickupBucketJobHandle);
@@ -346,11 +372,11 @@ public class PickupSystem : JobComponentSystem
             var next = inlineFromEntity[entity].Next;
             if (next != Entity.Null && !carryingFromEntity.Exists(next) && carryingFromEntity.Exists(entity))
             {
-                var currentPos = pos2DFromEntity[entity].Value;
+                //var currentPos = pos2DFromEntity[entity].Value;
                 var nextPos = pos2DFromEntity[next].Value;
-                var targetPos = (currentPos + nextPos) / 2.0f;
+                //var targetPos = (currentPos + nextPos) / 2.0f;
 
-                GoTo(entity, carryingFromEntity[entity].Value, targetPos, commandBuffer, nativeThreadIndex);
+                GoTo(entity, carryingFromEntity[entity].Value, nextPos, commandBuffer, nativeThreadIndex);
 
                 success = true;
             }
