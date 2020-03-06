@@ -20,7 +20,7 @@ public class ChopperAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             VerticalPos = transform.position.y,
             MaxVerticalPos = transform.position.y,
             
-            State = Chopper.ActionState.Dropping,
+            State = Chopper.ActionState.MovingUp,
             
             DropFire = DropFire,
         });

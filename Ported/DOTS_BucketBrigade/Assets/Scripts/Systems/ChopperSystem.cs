@@ -45,6 +45,7 @@ public class ChopperSystem : JobComponentSystem
                 uint seed = math.asuint(et);
                 InvwkRnd(ref seed);
                 seed *= (1 + (uint)entity.Index);
+                var posInGrid = grid.ToGridPos(pos);
 
                 switch (c.State)
                 {
@@ -79,18 +80,24 @@ public class ChopperSystem : JobComponentSystem
                     case Chopper.ActionState.FlyingToDestination:
                     {
                         c.State = Chopper.ActionState.Dropping;
+                        
+                        if (c.DropFire && (grid.Physical.ContainsKey(posInGrid) || grid.Simulation.ContainsKey(posInGrid)))
+                            c.State = Chopper.ActionState.MovingUp;
+                        else if (c.IsToDropWaterOnFire && !(grid.Physical.TryGetValue(grid.ToGridPos(pos), out Grid.Cell cell) && cell.Flags == Grid.Cell.ContentFlags.Fire))
+                            c.State = Chopper.ActionState.MovingUp;
+
                         break;
                     }
                     case Chopper.ActionState.PerformingAction:
                     {
                         c.State = Chopper.ActionState.MovingUp;
 
-                        if (c.DropFire && !(grid.Physical.ContainsKey(grid.ToGridPos(pos))) && !(grid.Simulation.ContainsKey(grid.ToGridPos(pos))))
+                        if (c.DropFire && !(grid.Physical.ContainsKey(posInGrid)) && !(grid.Simulation.ContainsKey(posInGrid)))
                         {
                             var fire = ecb.Instantiate(entityInQueryIndex, gameMaster.FirePrefab);
-                            ecb.SetComponent(entityInQueryIndex, fire, new GradientState {Value = 1.0f});
-                            ecb.SetComponent(entityInQueryIndex, fire, new PositionInGrid {Value = grid.ToGridPos(pos)});
-                            ecb.SetComponent(entityInQueryIndex, fire, new Translation {Value = new float3(grid.ToPos2D(grid.ToGridPos(pos)), 0).xzy});
+                            ecb.SetComponent(entityInQueryIndex, fire, new GradientState {Value = 1.5f});
+                            ecb.SetComponent(entityInQueryIndex, fire, new PositionInGrid {Value = posInGrid});
+                            ecb.SetComponent(entityInQueryIndex, fire, new Translation {Value = new float3(grid.ToPos2D(posInGrid), 0).xzy});
                         }
                         else
                         {
@@ -116,8 +123,18 @@ public class ChopperSystem : JobComponentSystem
         var handleMove = Entities
             .ForEach((Entity entity, int entityInQueryIndex, ref Chopper c, ref Translation t, ref Destination2D dest, in FromTo ft, in Position2D pos) =>
             {
-                if (!c.DropFire)
-                    dest.Value = c.IsToDropWaterOnFire ? ft.Target : ft.Source;
+                var posInGrid = grid.ToGridPos(pos);
+
+                if (c.DropFire && (grid.Physical.ContainsKey(posInGrid) || grid.Simulation.ContainsKey(posInGrid)))
+                {
+                    c.State = Chopper.ActionState.MovingUp;
+                    ecb.RemoveComponent<Destination2D>(entityInQueryIndex, entity);
+                }
+                else if (c.IsToDropWaterOnFire && !(grid.Physical.TryGetValue(grid.ToGridPos(pos), out Grid.Cell cell) && cell.Flags == Grid.Cell.ContentFlags.Fire))
+                {
+                    c.State = Chopper.ActionState.MovingUp;
+                    ecb.RemoveComponent<Destination2D>(entityInQueryIndex, entity);
+                }
 
                 t.Value = new float3(pos.Value, c.VerticalPos).xzy;
             }).Schedule(handle);
