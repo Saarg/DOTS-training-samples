@@ -15,10 +15,10 @@ public class GameMasterAuthoring : MonoBehaviour, IConvertGameObjectToEntity, ID
     [SerializeField, Tooltip("The number of firefighters in each chain, half will fill buckets, half will fight the fire.")]
     public int NbBotsPerChain = 30;
 
-    [SerializeField, Range(0, 10), Tooltip("The number of omnibots, they serve multiple purposes at once.")]
+    [SerializeField, Range(0, 50), Tooltip("The number of omnibots, they serve multiple purposes at once.")]
     public int NbOmnibots = 5;
 
-    [SerializeField, Range(0, 100), Tooltip("The number of buckets available to firefighters")]
+    [SerializeField, Range(0, 500), Tooltip("The number of buckets available to firefighters")]
     public int NbBuckets = 3;
 
     [SerializeField, Range(1, 10), Tooltip("The number of starting fires.")]
