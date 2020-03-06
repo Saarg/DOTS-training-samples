@@ -84,7 +84,6 @@ public class SpreadFire : JobComponentSystem
 
                     // Harry, you're a fire
                     state.Value = math.max(0, state.Value + acc);
-                    
 
                     // When Maxed-out, don't update the fire anymore unless something happens
                     if (state.Value >= 1.0f)

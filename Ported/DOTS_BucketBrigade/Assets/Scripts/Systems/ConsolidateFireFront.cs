@@ -47,16 +47,20 @@ public class ConsolidateFireFront : JobComponentSystem
             .ForEach(
             (Entity entity, int entityInQueryIndex, in PositionInGrid posInGrid) =>
             {
-                // Check that a fire is somewhere around the fire sim
-                for (var i = 0; i < aroundCells.Length; ++i)
+                // Check that a fire is somewhere around the fire sim but not on self
+                if (!grid.Physical.ContainsKey(posInGrid.Value))
                 {
-                    var currentPos = aroundCells[i] + posInGrid.Value;
-                    if (grid.Physical.TryGetValue(currentPos, out Grid.Cell cell) && cell.Flags == Grid.Cell.ContentFlags.Fire)
+                    for (var i = 0; i < aroundCells.Length; ++i)
                     {
-                        return;
+                        var currentPos = aroundCells[i] + posInGrid.Value;
+                        if (grid.Physical.TryGetValue(currentPos, out Grid.Cell cell) &&
+                            cell.Flags == Grid.Cell.ContentFlags.Fire)
+                        {
+                            return;
+                        }
                     }
                 }
-                
+
                 // We got here, so none is present, so remove the fire-sim:
                 ecb.AddComponent<ToDeleteFromGridTag>(entityInQueryIndex, entity);
             })
@@ -70,6 +74,9 @@ public class ConsolidateFireFront : JobComponentSystem
             .ForEach(
                 (Entity entity, int entityInQueryIndex, in PositionInGrid posInGrid) =>
                 {
+                    // Remove the new-fire tag, add the fire-front tag
+                    ecb.RemoveComponent<NewFireTag>(entityInQueryIndex, entity);
+
                     // Add to the grid
                     if (!physicalParallelGrid.TryAdd(posInGrid.Value,
                         new Grid.Cell {Entity = entity, Flags = Grid.Cell.ContentFlags.Fire}))
@@ -78,15 +85,12 @@ public class ConsolidateFireFront : JobComponentSystem
                         ecb.AddComponent<DelayedDeleteTag>(entityInQueryIndex, entity);
                         return;
                     }
-
-                    // Remove the new-fire tag, add the fire-front tag
-                    ecb.RemoveComponent<NewFireTag>(entityInQueryIndex, entity);
                 })
             .Schedule(removeSimFireHandle);
         
         var spawnFireHandle = Entities
             .WithNone<ToDeleteFromGridTag, PreFireTag>()
-            .WithAll<SpawnAroundSimFireTag>()
+            //FIXME: .WithAll<SpawnAroundSimFireTag>()
             .ForEach(
                 (Entity entity, int entityInQueryIndex, in PositionInGrid posInGrid) =>
                 {
@@ -107,12 +111,13 @@ public class ConsolidateFireFront : JobComponentSystem
                         if (grid.Physical.ContainsKey(currentPos))
                             continue;
                         
+                        hasAroundCells = true;
                         if (simParallelGrid.TryAdd(currentPos, 0))
                         {
-                            hasAroundCells = true;
                             var preFireEntity = ecb.Instantiate(entityInQueryIndex, gameMaster.FirePrefab);
                             ecb.AddComponent<PreFireTag>(entityInQueryIndex, preFireEntity);
                             ecb.RemoveComponent<NewFireTag>(entityInQueryIndex, preFireEntity);
+                            ecb.RemoveComponent<SpawnAroundSimFireTag>(entityInQueryIndex, preFireEntity);
                             ecb.AddComponent<PositionInGrid>(entityInQueryIndex, preFireEntity, new PositionInGrid{ Value = currentPos });
                             ecb.SetComponent<GradientState>(entityInQueryIndex, preFireEntity, new GradientState());
                             
