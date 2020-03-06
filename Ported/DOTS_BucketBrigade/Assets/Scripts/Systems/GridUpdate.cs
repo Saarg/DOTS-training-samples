@@ -4,6 +4,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Transforms;
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
 public class GridUpdate : JobComponentSystem
@@ -17,7 +18,8 @@ public class GridUpdate : JobComponentSystem
     {
         [NativeSetThreadIndex]
         public int ThreadIndex;
-        
+
+        public Grid GridComponent;
         public UnsafeHashMap<int2, Grid.Cell> Grid;
         public UnsafeHashMap<int2, int> SimulationGrid;
         public EntityCommandBuffer.Concurrent CommandBuffer;
@@ -48,6 +50,9 @@ public class GridUpdate : JobComponentSystem
             CommandBuffer.RemoveComponent<NewFireTag>(ThreadIndex, entity);
             CommandBuffer.RemoveComponent<SpawnAroundSimFireTag>(ThreadIndex, entity);
             CommandBuffer.AddComponent<PreFireTag>(ThreadIndex, entity);
+            // FIXME: remove
+            float3 pos = new float3(GridComponent.ToPos2D(positionInGrid), -5.0f).xzy;
+            CommandBuffer.SetComponent<Translation>(ThreadIndex, entity, new Translation(){ Value = pos});
         }
     }
     
@@ -141,6 +146,7 @@ public class GridUpdate : JobComponentSystem
       
         var clearGridJob = new ClearFiresGrid
         {
+            GridComponent = grid,
             Grid = Physical,
             SimulationGrid = Simulation,
             AroundCells = m_AroundCells,
